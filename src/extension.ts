@@ -13,7 +13,7 @@ export function activate(context: vscode.ExtensionContext) {
 			'nuget-gallery', // Identifies the type of the webview. Used internally
 			'NuGet Gallery', // Title of the panel displayed to the user
 			vscode.ViewColumn.One, // Editor column to show the new webview panel in.
-			{} // Webview options. More on these later.
+			{ enableScripts: true } // Webview options. More on these later.
 		);
 
 		var html = fs.readFileSync(path.join(context.extensionPath, 'web', 'index.html'), "utf8");

@@ -5,7 +5,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>NuGet Gallery</title>
-
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mustache.js/3.0.1/mustache.min.js"
+        integrity="sha256-srhz/t0GOrmVGZryG24MVDyFDYZpvUH2+dnJ8FbpGi0=" crossorigin="anonymous"></script>
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
     <style>
         html,
         body {
@@ -37,11 +39,39 @@
             grid-row: 2;
             grid-column: 1;
             border-right: 1px solid var(--vscode-sideBar-border);
+            overflow: auto;
         }
 
         .packages-list-item {
             height: 60px;
             margin: 3px;
+            display: grid;
+            grid-template-columns: 60px auto 60px;
+            grid-template-rows: 20px auto;
+            grid-gap: 3px;
+        }
+
+        .packages-list-item img {
+            grid-row: 1 / 3;
+            width: 50px;
+            height: 50px;
+            margin: 5px;
+        }
+
+        .packages-list-item .package-header {
+            grid-row: 1;
+            grid-column: 2;
+        }
+
+        .packages-list-item .package-description {
+            grid-column: 2 / 3;
+            overflow: hidden;
+        }
+
+        .packages-list-item .package-version {
+            grid-column: 3;
+            margin-right: 2px;
+            text-align: right;
         }
 
         .packages-list-item:hover {
@@ -49,9 +79,37 @@
             color: var(--vscode-list-hoverForeground);
         }
 
+        .packages-list-item.selected {
+            background: var(--vscode-list-activeSelectionBackground);
+            color: var(--vscode-list-activeSelectionForeground);
+        }
+
+        .templates {
+            display: none;
+        }
+
         .package-info {
             grid-row: 2;
             grid-column: 2;
+        }
+
+        .filter-button {
+            background: var(--vscode-button-background);
+            color: var(--vscode-button-foreground);
+            padding: 4px 8px;
+            border: 0px;
+        }
+
+        .filter-button:hover {
+            background: var(--vscode-button-hoverBackground);
+            cursor: pointer;
+        }
+
+        #packages-list-items-container .loader {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-top: 30px;
         }
     </style>
 </head>
@@ -60,14 +118,83 @@
     <div class="container">
         <div class="header">
             <input></input>
+            <button class="filter-button" onclick="filter()">Filter</button>
         </div>
         <div class="packages-list">
-            <div class="packages-list-item">Item 1</div>
-            <div class="packages-list-item">Item 2</div>
+
+            <div id="packages-list-items-container">
+
+            </div>
+            <!-- <div class="packages-list-item" onclick="selectPackage(this)">
+                <img
+                    src="https://banner2.kisspng.com/20180530/uae/kisspng-nuget-package-manager-microsoft-visual-studio-inst-5b0ea6b695e199.2531008315276868386139.jpg" />
+                <div class="package-header">NUnit, by Tomasz, 48M downloads</div>
+                <div class="package-version">v3.1.9</div>
+                <div class="package-description">NUnit features a fluent assert syntax, parameterized, generic and
+                    theory tests
+                    and is
+                    user-extensible.</div>
+            </div> -->
         </div>
         <div class="package-info"></div>
     </div>
 
+    <div class="templates">
+        <div id="loader-template">
+            <div class="loader">
+                <img src="https://media.giphy.com/media/fAhcc26mNg3vp5jrWt/giphy.gif" />
+            </div>
+        </div>
+        <div id="packages-list-items-template">
+            {{#data}}
+            <div class="packages-list-item" onclick="selectPackage(this)">
+                {{#iconUrl}}
+                <img src="{{iconUrl}}">
+                {{/iconUrl}}
+                {{^iconUrl}}
+                <img src="https://www.nuget.org/Content/gallery/img/default-package-icon.svg">
+                {{/iconUrl}}
+                <div class="package-header">{{title}}</div>
+                <div class="package-version">v{{version}}</div>
+                {{#summary}}
+                <div class="package-description">{{summary}}</div>
+                {{/summary}}
+                {{^summary}}
+                <div class="package-description">{{description}}</div>
+                {{/summary}}
+            </div>
+            {{/data}}
+        </div>
+    </div>
+    </div>
+
+    <script>
+        let packages = [];
+        let selected = null;
+
+        function selectPackage(item) {
+            if (selected)
+                selected.classList.remove("selected");
+            selected = item;
+            selected.classList.add("selected");
+        }
+
+        function filter() {
+
+            document.getElementById("packages-list-items-container").innerHTML = document.getElementById(
+                "loader-template").innerHTML
+
+            let query = axios.get("https://api-v2v3search-0.nuget.org/query")
+                .then(response => {
+                    packages = response.data;
+                    let template = document.getElementById("packages-list-items-template").innerHTML;
+                    var result = Mustache.render(template, packages);
+                    document.getElementById("packages-list-items-container").innerHTML = result;
+                });
+        }
+
+        filter();
+    </script>
 </body>
 
 </html>
