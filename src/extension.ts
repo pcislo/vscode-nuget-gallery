@@ -3,7 +3,10 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
 
-let fs = require("fs");
+const xpath = require('xpath');
+const dom = require('xmldom').DOMParser;
+const fs = require("fs");
+
 // this method is called when your extension is activated
 // your extension is activated the very first time the command is executed
 export function activate(context: vscode.ExtensionContext) {
@@ -15,8 +18,31 @@ export function activate(context: vscode.ExtensionContext) {
 			vscode.ViewColumn.One, // Editor column to show the new webview panel in.
 			{ enableScripts: true } // Webview options. More on these later.
 		);
+		vscode.workspace.findFiles("**/*.csproj").then(files => {
+			let projects = Array();
+			files.map(x => x.fsPath).forEach(x => {
+				let document = new dom().parseFromString(fs.readFileSync(x, "utf8"));
+				let packagesReferences = xpath.select("//ItemGroup/PackageReference", document);
+				let project = {
+					path: x,
+					project: path.basename(x),
+					packages: Array()
+				};
+				packagesReferences.forEach((p: any) => {
+					let projectPackage = {
 
-		var html = fs.readFileSync(path.join(context.extensionPath, 'web', 'index.html'), "utf8");
+						id: p.attributes.getNamedItem("Include").value,
+						version: p.attributes.getNamedItem("Version").value
+					};
+					project.packages.push(projectPackage);
+				});
+				projects.push(project);
+			});
+
+			panel.webview.postMessage(projects);
+		});
+
+		let html = fs.readFileSync(path.join(context.extensionPath, 'web', 'index.html'), "utf8");
 		panel.webview.html = html;
 	}));
 

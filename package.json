@@ -14,11 +14,13 @@
 	],
 	"main": "./out/extension.js",
 	"contributes": {
-		"commands": [{
-			"command": "extension.start",
-			"title": "Open Gallery",
-			"category": "NuGet"
-		}]
+		"commands": [
+			{
+				"command": "extension.start",
+				"title": "Open Gallery",
+				"category": "NuGet"
+			}
+		]
 	},
 	"scripts": {
 		"vscode:prepublish": "yarn run compile",
@@ -34,8 +36,12 @@
 		"@types/vscode": "^1.37.0",
 		"glob": "^7.1.4",
 		"mocha": "^6.1.4",
-		"typescript": "^3.3.1",
 		"tslint": "^5.12.1",
+		"typescript": "^3.3.1",
 		"vscode-test": "^1.0.2"
+	},
+	"dependencies": {
+		"xmldom": "^0.1.27",
+		"xpath": "^0.0.27"
 	}
 }

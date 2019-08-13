@@ -14,6 +14,33 @@
             height: 100%;
         }
 
+        select {
+            background: var(--vscode-dropdown-background);
+            color: var(--vscode-dropdown-foreground);
+            border: 1px solid var(--vscode-dropdown-border);
+            padding: 3px;
+            min-width: 100px;
+        }
+
+        input {
+            background: var(--vscode-input-background);
+            border: var(--vscode-input-border);
+            color: var(--vscode-input-foreground);
+            padding: 4px;
+        }
+
+        button {
+            background: var(--vscode-button-background);
+            color: var(--vscode-button-foreground);
+            padding: 4px 8px;
+            border: 0px;
+        }
+
+        button:hover {
+            background: var(--vscode-button-hoverBackground);
+            cursor: pointer;
+        }
+
         .container {
             display: grid;
             height: 100%;
@@ -27,10 +54,6 @@
         }
 
         .header>input {
-            background: var(--vscode-input-background);
-            border: var(--vscode-input-border);
-            color: var(--vscode-input-foreground);
-            padding: 4px;
             margin: 10px;
             width: 200px;
         }
@@ -58,9 +81,15 @@
             margin: 5px;
         }
 
-        .packages-list-item .package-header {
+        .package-header {
             grid-row: 1;
             grid-column: 2;
+
+        }
+
+        .package-header .title {
+            font-weight: bold;
+            font-size: 16px;
         }
 
         .packages-list-item .package-description {
@@ -77,6 +106,7 @@
         .packages-list-item:hover {
             background: var(--vscode-list-hoverBackground);
             color: var(--vscode-list-hoverForeground);
+            cursor: pointer;
         }
 
         .packages-list-item.selected {
@@ -88,21 +118,11 @@
             display: none;
         }
 
-        .package-info {
+        #package-info {
             grid-row: 2;
             grid-column: 2;
-        }
-
-        .filter-button {
-            background: var(--vscode-button-background);
-            color: var(--vscode-button-foreground);
-            padding: 4px 8px;
-            border: 0px;
-        }
-
-        .filter-button:hover {
-            background: var(--vscode-button-hoverBackground);
-            cursor: pointer;
+            overflow: auto;
+            margin: 5px;
         }
 
         #packages-list-items-container .loader {
@@ -111,35 +131,62 @@
             justify-content: center;
             margin-top: 30px;
         }
+
+        #package-version-selector {
+            margin: 4px;
+        }
+
+        .project-version-info {
+            margin-top: 4px;
+            border-top: 1px solid var(--vscode-sideBar-border);
+        }
+
+        .version-badge {
+            font-size: 12px;
+            font-weight: bold;
+            padding: 0px 2px;
+            background: var(--vscode-badge-background);
+            color: var(--vscode-badge-foreground);
+        }
     </style>
 </head>
 
 <body>
     <div class="container">
         <div class="header">
-            <input></input>
-            <button class="filter-button" onclick="filter()">Filter</button>
+            <input id="filter-input"></input>
+            <button onclick="filter()">Filter</button>
         </div>
         <div class="packages-list">
-
-            <div id="packages-list-items-container">
-
-            </div>
-            <!-- <div class="packages-list-item" onclick="selectPackage(this)">
-                <img
-                    src="https://banner2.kisspng.com/20180530/uae/kisspng-nuget-package-manager-microsoft-visual-studio-inst-5b0ea6b695e199.2531008315276868386139.jpg" />
-                <div class="package-header">NUnit, by Tomasz, 48M downloads</div>
-                <div class="package-version">v3.1.9</div>
-                <div class="package-description">NUnit features a fluent assert syntax, parameterized, generic and
-                    theory tests
-                    and is
-                    user-extensible.</div>
-            </div> -->
+            <div id="packages-list-items-container"></div>
         </div>
-        <div class="package-info"></div>
+        <div id="package-info"></div>
     </div>
 
     <div class="templates">
+        <div id="package-info-template">
+            <div class="package-header"><span class="title">{{data.id}}</span> by {{data.authorsString}}</div>
+            <div class="project-version-info">
+                {{#projects}}
+                <div>
+                    <input type="checkbox">
+                    <span>{{project}}</span>
+                    {{#version}}
+                    <span class="version-badge">{{version}}</span>
+                    {{/version}}
+                </div>
+                {{/projects}}
+            </div>
+            <div>
+                <select id="package-version-selector">
+                    {{#data.versions}}
+                    <option value="{{version}}">{{version}}</option>
+                    {{/data.versions}}
+                </select>
+                <button>Install</button>
+                <button>Uninstall</button>
+            </div>
+        </div>
         <div id="loader-template">
             <div class="loader">
                 <img src="https://media.giphy.com/media/fAhcc26mNg3vp5jrWt/giphy.gif" />
@@ -147,14 +194,14 @@
         </div>
         <div id="packages-list-items-template">
             {{#data}}
-            <div class="packages-list-item" onclick="selectPackage(this)">
+            <div class="packages-list-item" onclick="selectPackage(this, '{{id}}')">
                 {{#iconUrl}}
-                <img src="{{iconUrl}}">
+                <img src="{{iconUrl}}" />
                 {{/iconUrl}}
                 {{^iconUrl}}
-                <img src="https://www.nuget.org/Content/gallery/img/default-package-icon.svg">
+                <img src="https://www.nuget.org/Content/gallery/img/default-package-icon.svg" />
                 {{/iconUrl}}
-                <div class="package-header">{{title}}</div>
+                <div class="package-header"><span class="title">{{id}}</span> by {{authorsString}}</div>
                 <div class="package-version">v{{version}}</div>
                 {{#summary}}
                 <div class="package-description">{{summary}}</div>
@@ -170,28 +217,64 @@
 
     <script>
         let packages = [];
+        let projects = [];
         let selected = null;
 
-        function selectPackage(item) {
+        function selectPackage(item, id) {
             if (selected)
-                selected.classList.remove("selected");
-            selected = item;
-            selected.classList.add("selected");
+                selected.html.classList.remove("selected");
+
+            if (item == null || id == null) {
+                selected = null;
+                document.getElementById("package-info").innerHTML = "";
+            } else {
+                let packageData = packages.data.filter(x => x.id == id)[0];
+                let packageProjects = projects.map(p => ({
+                    project: p.project,
+                    path: p.path,
+                    version: p.packages.filter(pck => pck.id == packageData.id).length > 0 ?
+                        p.packages.filter(pck => pck.id == packageData.id)[0].version : null
+                }));
+                selected = {
+                    html: item,
+                    data: packageData,
+                    projects: packageProjects
+                }
+                selected.html.classList.add("selected");
+
+                let template = document.getElementById("package-info-template").innerHTML;
+                let result = Mustache.render(template, selected);
+                document.getElementById("package-info").innerHTML = result;
+            }
         }
 
         function filter() {
-
+            selectPackage(null, null);
             document.getElementById("packages-list-items-container").innerHTML = document.getElementById(
                 "loader-template").innerHTML
-
-            let query = axios.get("https://api-v2v3search-0.nuget.org/query")
+            let filterQuery = document.getElementById("filter-input").value;
+            axios.get("https://api-v2v3search-0.nuget.org/query", {
+                    params: {
+                        q: filterQuery
+                    }
+                })
                 .then(response => {
                     packages = response.data;
+                    packages.data.forEach(x => {
+                        x.authorsString = x.authors.join(", ");
+                        x.versions.reverse();
+                    });
+
                     let template = document.getElementById("packages-list-items-template").innerHTML;
-                    var result = Mustache.render(template, packages);
+                    let result = Mustache.render(template, packages);
                     document.getElementById("packages-list-items-container").innerHTML = result;
                 });
         }
+
+        window.addEventListener("message", event => {
+            projects = event.data;
+            console.log(projects);
+        })
 
         filter();
     </script>
