@@ -148,6 +148,11 @@
             background: var(--vscode-badge-background);
             color: var(--vscode-badge-foreground);
         }
+
+        .package-version-container {
+            margin-top: 3px;
+            border-top: 1px solid var(--vscode-sideBar-border);
+        }
     </style>
 </head>
 
@@ -169,7 +174,7 @@
             <div class="project-version-info">
                 {{#projects}}
                 <div>
-                    <input type="checkbox">
+                    <input onchange="projectSelectionChanged(event, '{{project}}')" type="checkbox">
                     <span>{{project}}</span>
                     {{#version}}
                     <span class="version-badge">{{version}}</span>
@@ -177,14 +182,14 @@
                 </div>
                 {{/projects}}
             </div>
-            <div>
+            <div class="package-version-container">
                 <select id="package-version-selector">
                     {{#data.versions}}
                     <option value="{{version}}">{{version}}</option>
                     {{/data.versions}}
                 </select>
-                <button>Install</button>
-                <button>Uninstall</button>
+                <button onclick="install()">Install</button>
+                <button onclick="uninstall()">Uninstall</button>
             </div>
         </div>
         <div id="loader-template">
@@ -216,11 +221,15 @@
     </div>
 
     <script>
+        let vscode = acquireVsCodeApi();
         let packages = [];
         let projects = [];
         let selected = null;
 
+        let projectsToUpdate = [];
+
         function selectPackage(item, id) {
+            projectsToUpdate = [];
             if (selected)
                 selected.html.classList.remove("selected");
 
@@ -275,6 +284,29 @@
             projects = event.data;
             console.log(projects);
         })
+
+        function projectSelectionChanged(ev, project) {
+            if (ev.target.checked === true)
+                projectsToUpdate.push(project);
+            else
+                projectsToUpdate = projectsToUpdate.filter(x => x !== project);
+        }
+
+        function install() {
+            vscode.postMessage({
+                command: 'install',
+                projects: projectsToUpdate.map(x => projects.find(p => p.project == x)),
+                package: selected.data
+            })
+        }
+
+        function uninstall() {
+            vscode.postMessage({
+                command: 'uninstall',
+                projects: projectsToUpdate.map(x => projects.find(p => p.project == x)),
+                package: selected.data
+            })
+        }
 
         filter();
     </script>

@@ -18,6 +18,22 @@ export function activate(context: vscode.ExtensionContext) {
 			vscode.ViewColumn.One, // Editor column to show the new webview panel in.
 			{ enableScripts: true } // Webview options. More on these later.
 		);
+
+		panel.webview.onDidReceiveMessage(
+			message => {
+				console.log(message);
+
+				switch (message.command) {
+					case 'install':
+						return;
+					case 'uninstall':
+						return;
+				}
+			},
+			undefined,
+			context.subscriptions
+		);
+
 		vscode.workspace.findFiles("**/*.csproj").then(files => {
 			let projects = Array();
 			files.map(x => x.fsPath).forEach(x => {
@@ -39,7 +55,7 @@ export function activate(context: vscode.ExtensionContext) {
 				projects.push(project);
 			});
 
-			panel.webview.postMessage(projects);
+			panel.webview.postMessage(projects.sort((a, b) => a.path < b.path ? -1 : a.path > b.path ? 1 : 0));
 		});
 
 		let html = fs.readFileSync(path.join(context.extensionPath, 'web', 'index.html'), "utf8");
