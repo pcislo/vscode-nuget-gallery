@@ -15,10 +15,13 @@ steps:
     versionSpec: '10.x'
   displayName: 'Install Node.js'
 
+- script: yarn install
+  displayName: yarn install
+
 - script: |
-    yarn global add vsce
+    sudo yarn global add vsce
     vsce package
-  displayName: 'vsce package'
+  displayName: Create VSIX
 
 - task: CopyFiles@2
   inputs:
