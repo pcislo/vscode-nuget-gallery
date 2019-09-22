@@ -170,7 +170,10 @@
 
     <div class="templates">
         <div id="package-info-template">
-            <div class="package-header"><span class="title">{{data.id}}</span> by {{data.authorsString}}</div>
+            <div class="package-header">
+                <button onclick="refreshProjects()">Refresh</button>
+                <span class="title">{{data.id}}</span> by {{data.authorsString}}
+            </div>
             <div class="project-version-info">
                 {{#projects}}
                 <div>
@@ -179,6 +182,11 @@
                     {{#version}}
                     <span class="version-badge">{{version}}</span>
                     {{/version}}
+                </div>
+                {{/projects}}
+                {{^projects}}
+                <div class="loader">
+                    <img src="https://media.giphy.com/media/fAhcc26mNg3vp5jrWt/giphy.gif" />
                 </div>
                 {{/projects}}
             </div>
@@ -251,10 +259,14 @@
                 }
                 selected.html.classList.add("selected");
 
-                let template = document.getElementById("package-info-template").innerHTML;
-                let result = Mustache.render(template, selected);
-                document.getElementById("package-info").innerHTML = result;
+                reloadProjectsTemplate();
             }
+        }
+
+        function reloadProjectsTemplate() {
+            let template = document.getElementById("package-info-template").innerHTML;
+            let result = Mustache.render(template, selected);
+            document.getElementById("package-info").innerHTML = result;
         }
 
         function filter() {
@@ -282,7 +294,10 @@
 
         window.addEventListener("message", event => {
             projects = event.data;
-            console.log(projects);
+            console.log(projects)
+            if (selected != null) {
+                selectPackage(selected.html, selected.data.id)
+            }
         })
 
         function projectSelectionChanged(ev, project) {
@@ -292,23 +307,35 @@
                 projectsToUpdate = projectsToUpdate.filter(x => x !== project);
         }
 
+        function refreshProjects() {
+            if (selected) {
+                selected.projects = null;
+                reloadProjectsTemplate();
+            }
+            vscode.postMessage({
+                command: 'reloadProjects',
+            })
+        }
+
         function install() {
             vscode.postMessage({
-                command: 'install',
+                command: 'add',
                 projects: projectsToUpdate.map(x => projects.find(p => p.project == x)),
-                package: selected.data
+                package: selected.data,
+                version: document.getElementById('package-version-selector').value
             })
         }
 
         function uninstall() {
             vscode.postMessage({
-                command: 'uninstall',
+                command: 'remove',
                 projects: projectsToUpdate.map(x => projects.find(p => p.project == x)),
                 package: selected.data
             })
         }
 
         filter();
+        refreshProjects();
     </script>
 </body>
 
