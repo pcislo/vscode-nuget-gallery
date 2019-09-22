@@ -1,10 +1,15 @@
 {
 	"name": "vscode-nuget-gallery",
 	"displayName": "vscode-nuget-gallery",
+	"publisher": "patcx",
 	"description": "",
 	"version": "0.0.1",
 	"engines": {
 		"vscode": "^1.37.0"
+	},
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/patcx/vscode-nuget-gallery"
 	},
 	"categories": [
 		"Other"
@@ -14,13 +19,11 @@
 	],
 	"main": "./out/extension.js",
 	"contributes": {
-		"commands": [
-			{
-				"command": "extension.start",
-				"title": "Open Gallery",
-				"category": "NuGet"
-			}
-		]
+		"commands": [{
+			"command": "extension.start",
+			"title": "Open Gallery",
+			"category": "NuGet"
+		}]
 	},
 	"scripts": {
 		"vscode:prepublish": "yarn run compile",
