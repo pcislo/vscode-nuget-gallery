@@ -4,6 +4,8 @@
 	"publisher": "patcx",
 	"description": "",
 	"version": "0.0.1",
+	"preview": true,
+	"icon": "docs/images/icon.png",
 	"engines": {
 		"vscode": "^1.37.0"
 	},
