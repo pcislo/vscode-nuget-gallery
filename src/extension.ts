@@ -3,6 +3,8 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
 
+import { TaskManager } from './taskManager';
+
 const xpath = require('xpath');
 const dom = require('xmldom').DOMParser;
 const fs = require("fs");
@@ -46,17 +48,12 @@ export function activate(context: vscode.ExtensionContext) {
 			{ enableScripts: true } // Webview options. More on these later.
 		);
 
-		let queue: vscode.Task[] = [];
-
-		vscode.tasks.onDidEndTask(async e => {
-			let next = queue.shift();
-			if (next !== undefined) {
-				await vscode.tasks.executeTask(next);
-			}
-			else {
+		let taskManager = new TaskManager(vscode.tasks.executeTask, (e: any) => {
+			if (e.name === "nuget-gallery" && e.remaining === 0) {
 				loadProjects(panel);
 			}
 		});
+		vscode.tasks.onDidEndTask(e => taskManager.handleDidEndTask(e));
 
 		panel.webview.onDidReceiveMessage(
 			async message => {
@@ -77,13 +74,8 @@ export function activate(context: vscode.ExtensionContext) {
 							'dotnet',
 							new vscode.ShellExecution("dotnet", args)
 						);
-						queue.push(task);
+						taskManager.addTask(task);
 					}
-					let next = queue.shift();
-					if (next !== undefined) {
-						await vscode.tasks.executeTask(next);
-					}
-
 				}
 			},
 			undefined,
