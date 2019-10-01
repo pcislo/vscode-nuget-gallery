@@ -1,8 +1,8 @@
 {
 	"name": "vscode-nuget-gallery",
-	"displayName": "vscode-nuget-gallery",
+	"displayName": "NuGet Gallery",
 	"publisher": "patcx",
-	"description": "",
+	"description": "NuGet Gallery Extension makes installing and uninstalling NuGet packages easier",
 	"version": "0.0.1",
 	"preview": true,
 	"icon": "docs/images/icon.png",
@@ -21,11 +21,13 @@
 	],
 	"main": "./out/extension.js",
 	"contributes": {
-		"commands": [{
-			"command": "extension.start",
-			"title": "Open Gallery",
-			"category": "NuGet"
-		}]
+		"commands": [
+			{
+				"command": "extension.start",
+				"title": "Open Gallery",
+				"category": "NuGet"
+			}
+		]
 	},
 	"scripts": {
 		"vscode:prepublish": "yarn run compile",
@@ -46,6 +48,7 @@
 		"vscode-test": "^1.0.2"
 	},
 	"dependencies": {
+		"axios": "^0.19.0",
 		"xmldom": "^0.1.27",
 		"xpath": "^0.0.27"
 	}

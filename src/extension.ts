@@ -8,6 +8,7 @@ import { TaskManager } from './taskManager';
 const xpath = require('xpath');
 const dom = require('xmldom').DOMParser;
 const fs = require("fs");
+const axios = require('axios').default;
 
 // this method is called when your extension is activated
 // your extension is activated the very first time the command is executed
@@ -20,7 +21,7 @@ function loadProjects(panel: vscode.WebviewPanel) {
 			let packagesReferences = xpath.select("//ItemGroup/PackageReference", document);
 			let project = {
 				path: x,
-				project: path.basename(x),
+				projectName: path.basename(x),
 				packages: Array()
 			};
 			packagesReferences.forEach((p: any) => {
@@ -57,6 +58,8 @@ export function activate(context: vscode.ExtensionContext) {
 
 		panel.webview.onDidReceiveMessage(
 			async message => {
+				console.log("event");
+				console.log(message);
 				if (message.command === "reloadProjects") {
 					loadProjects(panel);
 				}
@@ -83,8 +86,7 @@ export function activate(context: vscode.ExtensionContext) {
 		);
 
 
-
-		let html = fs.readFileSync(path.join(context.extensionPath, 'web', 'index.html'), "utf8");
+		let html = fs.readFileSync(path.join(context.extensionPath, 'web/dist', 'index.html'), "utf8");
 		panel.webview.html = html;
 	}));
 
