@@ -3,9 +3,12 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
 
+import { TaskManager } from './taskManager';
+
 const xpath = require('xpath');
 const dom = require('xmldom').DOMParser;
 const fs = require("fs");
+const axios = require('axios').default;
 
 // this method is called when your extension is activated
 // your extension is activated the very first time the command is executed
@@ -18,7 +21,7 @@ function loadProjects(panel: vscode.WebviewPanel) {
 			let packagesReferences = xpath.select("//ItemGroup/PackageReference", document);
 			let project = {
 				path: x,
-				project: path.basename(x),
+				projectName: path.basename(x),
 				packages: Array()
 			};
 			packagesReferences.forEach((p: any) => {
@@ -46,17 +49,12 @@ export function activate(context: vscode.ExtensionContext) {
 			{ enableScripts: true } // Webview options. More on these later.
 		);
 
-		let queue: vscode.Task[] = [];
-
-		vscode.tasks.onDidEndTask(async e => {
-			let next = queue.shift();
-			if (next !== undefined) {
-				await vscode.tasks.executeTask(next);
-			}
-			else {
+		let taskManager = new TaskManager(vscode.tasks.executeTask, (e: any) => {
+			if (e.name === "nuget-gallery" && e.remaining === 0) {
 				loadProjects(panel);
 			}
 		});
+		vscode.tasks.onDidEndTask(e => taskManager.handleDidEndTask(e));
 
 		panel.webview.onDidReceiveMessage(
 			async message => {
@@ -66,7 +64,7 @@ export function activate(context: vscode.ExtensionContext) {
 				else {
 					for (let i = 0; i < message.projects.length; i++) {
 						let project = message.projects[i];
-						let args = [message.command, project.path, "package", message.package.id];
+						let args = [message.command, project.projectPath, "package", message.package.id];
 						if (message.command === 'add') {
 							args.push("-v");
 							args.push(message.version);
@@ -77,13 +75,8 @@ export function activate(context: vscode.ExtensionContext) {
 							'dotnet',
 							new vscode.ShellExecution("dotnet", args)
 						);
-						queue.push(task);
+						taskManager.addTask(task);
 					}
-					let next = queue.shift();
-					if (next !== undefined) {
-						await vscode.tasks.executeTask(next);
-					}
-
 				}
 			},
 			undefined,
@@ -91,8 +84,7 @@ export function activate(context: vscode.ExtensionContext) {
 		);
 
 
-
-		let html = fs.readFileSync(path.join(context.extensionPath, 'web', 'index.html'), "utf8");
+		let html = fs.readFileSync(path.join(context.extensionPath, 'web/dist', 'index.html'), "utf8");
 		panel.webview.html = html;
 	}));
 
