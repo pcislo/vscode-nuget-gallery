@@ -9,3 +9,9 @@ export default {
   name: "Loader"
 };
 </script>
+
+<style lang="scss" scoped>
+.loader {
+  padding: 10px;
+}
+</style>

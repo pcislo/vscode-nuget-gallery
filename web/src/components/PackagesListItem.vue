@@ -3,7 +3,7 @@
     <img :src="iconUrl" @error="packageInfo.iconUrl = null" />
     <div class="package-header">
       <span class="title">{{ packageInfo.id }}</span> by
-      {{ authors }}
+      {{ packageInfo.authors | join }}
     </div>
     <div class="package-version">v{{ packageInfo.version }}</div>
     <div v-if="packageInfo.summary" class="package-description">
@@ -21,11 +21,6 @@ export default {
     isSelected: Boolean
   },
   computed: {
-    authors() {
-      return this.packageInfo && this.packageInfo.authors
-        ? this.packageInfo.authors.join(", ")
-        : null;
-    },
     iconUrl() {
       return this.packageInfo && this.packageInfo.iconUrl
         ? this.packageInfo.iconUrl

@@ -4,11 +4,22 @@
       <filters @filterChanged="updateFilter($event)" @filter="refreshList" />
     </div>
     <div class="packages-list">
-      <packages-list :filter="filter" ref="packagesList" />
+      <packages-list
+        :filter="filter"
+        @packageChanged="packageChanged"
+        ref="packagesList"
+      />
     </div>
-    <div id="package-info">
-      <button @click="sendProjectsReloadRequest">Refresh</button>
-      <projects-panel :projects="projects" />
+    <div id="package-info" v-if="selectedPackage">
+      <projects-panel
+        @refreshRequested="sendProjectsReloadRequest"
+        :projects="projects"
+        :versions="packageVersions"
+        :packageId="selectedPackage.id"
+        :packageAuthors="selectedPackage.authors"
+        @install="install"
+        @uninstall="uninstall"
+      />
     </div>
   </div>
 </template>
@@ -32,30 +43,75 @@ export default {
   data() {
     return {
       filter: null,
+      selectedPackage: null,
       projects: [],
+      rawProjects: [],
       debouncedListRefresh: _.debounce(this.refreshList, 500)
     };
+  },
+  computed: {
+    packageVersions: {
+      get() {
+        return this.selectedPackage
+          ? this.selectedPackage.versions.map(x => x.version).reverse()
+          : [];
+      }
+    }
   },
   methods: {
     refreshList() {
       this.$refs.packagesList.refresh();
+    },
+    recalculateProjectsList() {
+      if (!this.selectedPackage) this.projects = null;
+      else {
+        this.projects = [];
+        let packageId = this.selectedPackage.id;
+        this.rawProjects.forEach(x => {
+          let foundPackage = x.packages.find(p => p.id == packageId);
+          let version = foundPackage ? foundPackage.version : null;
+          this.projects.push({
+            projectName: x.projectName,
+            projectPath: x.path,
+            version: version
+          });
+        });
+      }
+    },
+    packageChanged(value) {
+      this.selectedPackage = value;
+      this.recalculateProjectsList();
     },
     updateFilter(value) {
       this.filter = value;
       this.debouncedListRefresh();
     },
     sendProjectsReloadRequest() {
-      console.log(vscode);
+      this.projects = null;
       vscode.postMessage({
         command: "reloadProjects"
       });
-      console.log("sendProjectsReloadRequest");
+    },
+    install(data) {
+      vscode.postMessage({
+        command: "add",
+        projects: data.selectedProjects,
+        package: this.selectedPackage,
+        version: data.selectedVersion
+      });
+    },
+    uninstall(data) {
+      vscode.postMessage({
+        command: "remove",
+        projects: data.selectedProjects,
+        package: this.selectedPackage
+      });
     }
   },
   created() {
     window.addEventListener("message", event => {
-      console.log(event);
-      this.projects = event.data;
+      this.rawProjects = event.data;
+      this.recalculateProjectsList();
     });
     this.sendProjectsReloadRequest();
   }
@@ -105,5 +161,12 @@ button:hover {
 .header {
   grid-column: 1 / 3;
   border-bottom: 1px solid var(--vscode-sideBar-border);
+}
+
+.packages-list {
+  grid-row: 2;
+  grid-column: 1;
+  border-right: 1px solid var(--vscode-sideBar-border);
+  overflow: auto;
 }
 </style>

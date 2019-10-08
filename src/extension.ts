@@ -58,15 +58,13 @@ export function activate(context: vscode.ExtensionContext) {
 
 		panel.webview.onDidReceiveMessage(
 			async message => {
-				console.log("event");
-				console.log(message);
 				if (message.command === "reloadProjects") {
 					loadProjects(panel);
 				}
 				else {
 					for (let i = 0; i < message.projects.length; i++) {
 						let project = message.projects[i];
-						let args = [message.command, project.path, "package", message.package.id];
+						let args = [message.command, project.projectPath, "package", message.package.id];
 						if (message.command === 'add') {
 							args.push("-v");
 							args.push(message.version);

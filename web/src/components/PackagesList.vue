@@ -82,10 +82,4 @@ export default {
 </script>
 
 <style lang="scss" scoped>
-.packages-list {
-  grid-row: 2;
-  grid-column: 1;
-  border-right: 1px solid var(--vscode-sideBar-border);
-  overflow: auto;
-}
 </style>
