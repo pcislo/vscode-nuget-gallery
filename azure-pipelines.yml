@@ -19,6 +19,12 @@ steps:
   displayName: yarn install
 
 - script: |
+      cd ./ web
+      yarn install
+      yarn build
+  displayName: build web
+
+- script: |
     sudo yarn global add vsce
     vsce package
   displayName: Create VSIX
