@@ -19,9 +19,8 @@ steps:
   displayName: yarn install
 
 - script: |
-      cd ./ web
-      yarn install
-      yarn build
+      yarn --cwd web install
+      yarn --cwd web build
   displayName: build web
 
 - script: |
