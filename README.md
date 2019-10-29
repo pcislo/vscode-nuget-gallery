@@ -4,7 +4,7 @@ NuGet Gallery Extension makes installing and uninstalling NuGet packages easier
 
 
 ## Features
-![feature X](docs/images/presentation_1.png)
+![feature X](docs/images/presentation_1.gif)
 
 
 
