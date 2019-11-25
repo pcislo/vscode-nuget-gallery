@@ -1,14 +1,18 @@
 <template>
-  <div v-if="status == 'loaded'">
-    <template v-if="packages && packages.data && packages.data.length > 0">
+  <div
+    class="packages-list-container"
+    v-if="status == 'loaded'"
+    @scroll="onScroll"
+  >
+    <div ref="innerContainer" v-if="packages && packages.length > 0">
       <packages-list-item
-        v-for="(packageInfo, index) in packages.data"
+        v-for="(packageInfo, index) in packages"
         :packageInfo="packageInfo"
         :key="index"
         :isSelected="selectedPackage == packageInfo"
         @click.native="selectPackage(packageInfo)"
       ></packages-list-item>
-    </template>
+    </div>
     <h4 v-else>No packages found</h4>
   </div>
   <loader v-else-if="status == 'loading'" />
@@ -32,38 +36,60 @@ export default {
     return {
       packages: [],
       selectedPackage: null,
-      status: "loaded"
+      status: "loaded",
+      morePackagesStatus: "loaded",
+      page: 0,
+      pageSize: 20
     };
   },
   props: {
     filter: String
   },
   methods: {
+    onScroll(e) {
+      let bottom = e.target.scrollTop + e.target.getBoundingClientRect().height;
+      let height = this.$refs.innerContainer.getBoundingClientRect().height;
+      if (bottom > height - 200 && this.morePackagesStatus == "loaded") {
+        this.page += 1;
+        this.appendPackages();
+      }
+    },
+    appendPackages() {
+      this.morePackagesStatus = "loading";
+      axios
+        .get("https://api-v2v3search-0.nuget.org/query", {
+          params: {
+            q: this.filter,
+            take: this.pageSize,
+            skip: this.page * this.pageSize
+          }
+        })
+        .then(response => {
+          this.morePackagesStatus = "loaded";
+          if (response.data && response.data.data.length > 0)
+            response.data.data.forEach(x => this.packages.push(x));
+          else this.morePackagesStatus = "all";
+        })
+        .catch(err => {
+          console.error(err);
+          this.morePackagesStatus = "error";
+        });
+    },
     refresh() {
+      this.page = 0;
       this.selectPackage(null);
       this.packages = null;
       this.status = "loading";
       axios
         .get("https://api-v2v3search-0.nuget.org/query", {
           params: {
-            q: this.filter
+            q: this.filter,
+            take: this.pageSize
           }
         })
         .then(response => {
-          this.packages = response.data;
+          if (response.data) this.packages = response.data.data;
           this.status = "loaded";
-
-          //   packages.data.forEach(x => {
-          //     x.authorsString = x.authors.join(", ");
-          //     x.versions.reverse();
-          //   });
-
-          //   let template = document.getElementById("packages-list-items-template")
-          //     .innerHTML;
-          //   let result = Mustache.render(template, packages);
-          //   document.getElementById(
-          //     "packages-list-items-container"
-          //   ).innerHTML = result;
         })
         .catch(err => {
           console.error(err);
@@ -82,4 +108,8 @@ export default {
 </script>
 
 <style lang="scss" scoped>
+.packages-list-container {
+  overflow: auto;
+  height: 100%;
+}
 </style>
