@@ -99,8 +99,6 @@ export default {
   border-top: 1px solid var(--vscode-sideBar-border);
   border-bottom: 1px solid var(--vscode-sideBar-border);
 }
-.projects-list-item {
-}
 
 .version-badge {
   font-size: 12px;
@@ -124,6 +122,9 @@ export default {
 .projects-panel-header {
   grid-row: 1;
   grid-column: 2;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 .projects-panel-header .title {
   font-weight: bold;

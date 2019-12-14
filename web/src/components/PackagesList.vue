@@ -109,7 +109,8 @@ export default {
 
 <style lang="scss" scoped>
 .packages-list-container {
-  overflow: auto;
+  overflow-y: auto;
+  overflow-x: hidden;
   height: 100%;
 }
 </style>

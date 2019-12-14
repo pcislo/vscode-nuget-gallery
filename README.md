@@ -10,6 +10,9 @@ NuGet Gallery Extension makes installing and uninstalling NuGet packages easier
 
 ## Release Notes
 
+### v0.0.2
+
+Add scroll 
 
 ### v0.0.1
 
