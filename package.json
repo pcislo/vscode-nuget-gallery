@@ -1,9 +1,9 @@
 {
 	"name": "vscode-nuget-gallery",
 	"displayName": "NuGet Gallery",
-	"publisher": "patcx",
+	"publisher": "pcislo",
 	"description": "NuGet Gallery Extension makes installing and uninstalling NuGet packages easier",
-	"version": "0.0.3",
+	"version": "0.0.4",
 	"preview": true,
 	"icon": "docs/images/icon.png",
 	"engines": {
@@ -11,7 +11,7 @@
 	},
 	"repository": {
 		"type": "git",
-		"url": "https://github.com/patcx/vscode-nuget-gallery"
+		"url": "https://github.com/pcislo/vscode-nuget-gallery"
 	},
 	"categories": [
 		"Other"

@@ -53,6 +53,8 @@ export default {
   .package-header {
     grid-row: 1;
     grid-column: 2;
+    overflow: hidden;
+    text-overflow: ellipsis;
     .title {
       font-weight: bold;
       font-size: 16px;
@@ -68,6 +70,8 @@ export default {
     grid-column: 3;
     margin-right: 2px;
     text-align: right;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
 
   img {
