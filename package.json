@@ -3,7 +3,7 @@
 	"displayName": "NuGet Gallery",
 	"publisher": "pcislo",
 	"description": "NuGet Gallery Extension makes installing and uninstalling NuGet packages easier",
-	"version": "0.0.3",
+	"version": "0.0.4",
 	"preview": true,
 	"icon": "docs/images/icon.png",
 	"engines": {
