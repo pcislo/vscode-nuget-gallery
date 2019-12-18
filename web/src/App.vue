@@ -2,6 +2,7 @@
   <div class="container">
     <div class="header">
       <filters @filterChanged="updateFilter($event)" @filter="refreshList" />
+      <source-selector :sources="nugetSources" />
     </div>
     <div class="packages-list">
       <packages-list
@@ -26,6 +27,7 @@
 
 <script>
 import Filters from "@/components/Filters";
+import SourceSelector from "@/components/SourceSelector";
 import ProjectsPanel from "@/components/ProjectsPanel";
 import PackagesList from "@/components/PackagesList";
 
@@ -38,7 +40,8 @@ export default {
   components: {
     Filters,
     ProjectsPanel,
-    PackagesList
+    PackagesList,
+    SourceSelector
   },
   data() {
     return {
@@ -46,6 +49,7 @@ export default {
       selectedPackage: null,
       projects: [],
       rawProjects: [],
+      nugetSources: [],
       debouncedListRefresh: _.debounce(this.refreshList, 500)
     };
   },
@@ -110,10 +114,21 @@ export default {
   },
   created() {
     window.addEventListener("message", event => {
-      this.rawProjects = event.data;
-      this.recalculateProjectsList();
+      console.log("WEB: Received message", event);
+      switch (event.data.command) {
+        case "setProjects":
+          this.rawProjects = event.data.payload;
+          this.recalculateProjectsList();
+          break;
+        case "setSources":
+          this.nugetSources = event.data.payload.map(x => JSON.parse(x));
+          break;
+      }
     });
     this.sendProjectsReloadRequest();
+    vscode.postMessage({
+      command: "reloadSources"
+    });
   }
 };
 </script>
@@ -161,6 +176,8 @@ button:hover {
 .header {
   grid-column: 1 / 3;
   border-bottom: 1px solid var(--vscode-sideBar-border);
+  display: flex;
+  justify-content: space-between;
 }
 
 .packages-list {

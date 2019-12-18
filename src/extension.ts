@@ -13,6 +13,10 @@ const axios = require('axios').default;
 // this method is called when your extension is activated
 // your extension is activated the very first time the command is executed
 
+function postMessage(panel: vscode.WebviewPanel, command: string, payload: object) {
+	panel.webview.postMessage({ command: command, payload: payload });
+}
+
 function loadProjects(panel: vscode.WebviewPanel) {
 	vscode.workspace.findFiles("**/*.csproj").then(files => {
 		let projects = Array();
@@ -34,8 +38,7 @@ function loadProjects(panel: vscode.WebviewPanel) {
 			});
 			projects.push(project);
 		});
-
-		panel.webview.postMessage(projects.sort((a, b) => a.path < b.path ? -1 : a.path > b.path ? 1 : 0));
+		postMessage(panel, "setProjects", projects.sort((a, b) => a.path < b.path ? -1 : a.path > b.path ? 1 : 0));
 	});
 }
 
@@ -60,6 +63,9 @@ export function activate(context: vscode.ExtensionContext) {
 			async message => {
 				if (message.command === "reloadProjects") {
 					loadProjects(panel);
+				}
+				else if (message.command === "reloadSources") {
+					postMessage(panel, "setSources", vscode.workspace.getConfiguration("nuget-gallery").sources);
 				}
 				else {
 					for (let i = 0; i < message.projects.length; i++) {
