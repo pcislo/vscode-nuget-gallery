@@ -39,11 +39,19 @@ export default {
       status: "loaded",
       morePackagesStatus: "loaded",
       page: 0,
-      pageSize: 20
+      pageSize: 20,
+      queryUrl: null
     };
   },
   props: {
-    filter: String
+    filter: String,
+    source: Object
+  },
+  watch: {
+    source(newValue) {
+      this.queryUrl = null;
+      this.refresh();
+    }
   },
   methods: {
     onScroll(e) {
@@ -54,16 +62,39 @@ export default {
         this.appendPackages();
       }
     },
+    createQuery() {
+      if (this.queryUrl == null) {
+        return new Promise((resolve, reject) => {
+          axios
+            .get(this.source.url)
+            .then(response => {
+              let resource = response.data.resources.find(x =>
+                x["@type"].includes("SearchQueryService")
+              );
+              if (resource != null) this.queryUrl = resource["@id"];
+              if (this.queryUrl == null) reject();
+              this.createQuery()
+                .then(response => resolve(response))
+                .catch(error => reject(error));
+            })
+            .catch(error => {
+              reject(error);
+            });
+        });
+      }
+
+      return axios.get(this.queryUrl, {
+        params: {
+          q: this.filter,
+          take: this.pageSize,
+          skip: this.page * this.pageSize
+        }
+      });
+    },
     appendPackages() {
+      if (this.source == null) return;
       this.morePackagesStatus = "loading";
-      axios
-        .get("https://api-v2v3search-0.nuget.org/query", {
-          params: {
-            q: this.filter,
-            take: this.pageSize,
-            skip: this.page * this.pageSize
-          }
-        })
+      this.createQuery()
         .then(response => {
           this.morePackagesStatus = "loaded";
           if (response.data && response.data.data.length > 0)
@@ -76,17 +107,12 @@ export default {
         });
     },
     refresh() {
+      if (this.source == null) return;
       this.page = 0;
       this.selectPackage(null);
       this.packages = null;
       this.status = "loading";
-      axios
-        .get("https://api-v2v3search-0.nuget.org/query", {
-          params: {
-            q: this.filter,
-            take: this.pageSize
-          }
-        })
+      this.createQuery()
         .then(response => {
           if (response.data) this.packages = response.data.data;
           this.status = "loaded";
@@ -100,9 +126,6 @@ export default {
       this.selectedPackage = selectedPackage;
       this.$emit("packageChanged", selectedPackage);
     }
-  },
-  mounted() {
-    this.refresh();
   }
 };
 </script>

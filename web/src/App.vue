@@ -2,11 +2,12 @@
   <div class="container">
     <div class="header">
       <filters @filterChanged="updateFilter($event)" @filter="refreshList" />
-      <source-selector :sources="nugetSources" />
+      <source-selector :sources="nugetSources" @sourceChanged="changeSource" />
     </div>
     <div class="packages-list">
       <packages-list
         :filter="filter"
+        :source="currentSource"
         @packageChanged="packageChanged"
         ref="packagesList"
       />
@@ -45,6 +46,7 @@ export default {
   },
   data() {
     return {
+      currentSource: null,
       filter: null,
       selectedPackage: null,
       projects: [],
@@ -65,6 +67,9 @@ export default {
   methods: {
     refreshList() {
       this.$refs.packagesList.refresh();
+    },
+    changeSource(source) {
+      this.currentSource = source;
     },
     recalculateProjectsList() {
       if (!this.selectedPackage) this.projects = null;
@@ -101,7 +106,8 @@ export default {
         command: "add",
         projects: data.selectedProjects,
         package: this.selectedPackage,
-        version: data.selectedVersion
+        version: data.selectedVersion,
+        source: this.currentSource.url
       });
     },
     uninstall(data) {

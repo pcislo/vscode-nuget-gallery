@@ -74,6 +74,8 @@ export function activate(context: vscode.ExtensionContext) {
 						if (message.command === 'add') {
 							args.push("-v");
 							args.push(message.version);
+							args.push("-s");
+							args.push(message.source);
 						}
 						let task = new vscode.Task(
 							{ type: 'dotnet', task: `dotnet ${message.command}` },

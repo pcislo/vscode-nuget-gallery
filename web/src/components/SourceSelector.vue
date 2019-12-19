@@ -1,7 +1,7 @@
 <template>
   <div>
-    <select>
-      <option :key="source.name" v-for="source in sources">
+    <select v-model="selectedSource">
+      <option :key="source.name" v-for="source in sources" :value="source">
         {{ source.name }}
       </option>
     </select>
@@ -11,8 +11,30 @@
 <script>
 export default {
   name: "SourceSelector",
+  data() {
+    return {
+      source: null
+    };
+  },
+  watch: {
+    sources(newValue) {
+      if (newValue && newValue.length > 0) this.selectedSource = newValue[0];
+      else this.selectedSource = null;
+    }
+  },
   props: {
     sources: Array
+  },
+  computed: {
+    selectedSource: {
+      get() {
+        return this.source;
+      },
+      set(value) {
+        this.source = value;
+        this.$emit("sourceChanged", this.source);
+      }
+    }
   }
 };
 </script>
