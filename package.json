@@ -3,7 +3,7 @@
 	"displayName": "NuGet Gallery",
 	"publisher": "patcx",
 	"description": "NuGet Gallery Extension makes installing and uninstalling NuGet packages easier",
-	"version": "0.0.4",
+	"version": "0.0.5",
 	"preview": true,
 	"icon": "docs/images/icon.png",
 	"engines": {
@@ -29,7 +29,12 @@
 		"configuration": {
 			"title": "NuGet Gallery",
 			"properties": {
-				"nuget-gallery.sources": {
+				"NugetGallery.credentialProviderFolder": {
+					"type": "string",
+					"default": "%UserProfile%/.nuget/plugins/netfx/CredentialProvider.Microsoft",
+					"description": "Folder path containing CredentialProvider.Microsoft.exe"
+				},
+				"NugetGallery.sources": {
 					"type": "array",
 					"items": {
 						"type": "string"

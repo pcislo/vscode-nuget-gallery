@@ -9,12 +9,19 @@ const xpath = require('xpath');
 const dom = require('xmldom').DOMParser;
 const fs = require("fs");
 const axios = require('axios').default;
+const exec = require('child_process').exec;
 
 // this method is called when your extension is activated
 // your extension is activated the very first time the command is executed
 
 function postMessage(panel: vscode.WebviewPanel, command: string, payload: object) {
 	panel.webview.postMessage({ command: command, payload: payload });
+}
+
+function readCredentials(configuration: vscode.WorkspaceConfiguration, source: string, credentialsCallback: Function) {
+	exec(configuration.credentialProviderFolder + "/CredentialProvider.Microsoft.exe -C -F Json -U " + source, function callback(error: any, stdout: any, stderr: any) {
+		credentialsCallback({ source: source, credentials: JSON.parse(stdout) });
+	});
 }
 
 function loadProjects(panel: vscode.WebviewPanel) {
@@ -45,6 +52,7 @@ function loadProjects(panel: vscode.WebviewPanel) {
 export function activate(context: vscode.ExtensionContext) {
 
 	context.subscriptions.push(vscode.commands.registerCommand('extension.start', () => {
+		let configuration = vscode.workspace.getConfiguration("NugetGallery");
 		const panel = vscode.window.createWebviewPanel(
 			'nuget-gallery', // Identifies the type of the webview. Used internally
 			'NuGet Gallery', // Title of the panel displayed to the user
@@ -65,7 +73,12 @@ export function activate(context: vscode.ExtensionContext) {
 					loadProjects(panel);
 				}
 				else if (message.command === "reloadSources") {
-					postMessage(panel, "setSources", vscode.workspace.getConfiguration("nuget-gallery").sources);
+					postMessage(panel, "setSources", configuration.sources);
+				}
+				else if (message.command === "getCredentials") {
+					readCredentials(configuration, message.source, (cred: Object) => {
+						postMessage(panel, "setCredentials", { source: message.source, credentials: cred });
+					});
 				}
 				else {
 					for (let i = 0; i < message.projects.length; i++) {

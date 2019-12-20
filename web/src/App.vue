@@ -9,6 +9,7 @@
         :filter="filter"
         :source="currentSource"
         @packageChanged="packageChanged"
+        @getCredentials="fetchCredentials"
         ref="packagesList"
       />
     </div>
@@ -33,6 +34,7 @@ import ProjectsPanel from "@/components/ProjectsPanel";
 import PackagesList from "@/components/PackagesList";
 
 import _ from "lodash";
+import axios from "axios";
 
 const vscode = acquireVsCodeApi();
 
@@ -52,7 +54,8 @@ export default {
       projects: [],
       rawProjects: [],
       nugetSources: [],
-      debouncedListRefresh: _.debounce(this.refreshList, 500)
+      debouncedListRefresh: _.debounce(this.refreshList, 500),
+      credentialsCallback: {}
     };
   },
   computed: {
@@ -116,6 +119,13 @@ export default {
         projects: data.selectedProjects,
         package: this.selectedPackage
       });
+    },
+    fetchCredentials(req) {
+      this.credentialsCallback[req.source] = req.callback;
+      vscode.postMessage({
+        command: "getCredentials",
+        source: req.source
+      });
     }
   },
   created() {
@@ -128,6 +138,11 @@ export default {
           break;
         case "setSources":
           this.nugetSources = event.data.payload.map(x => JSON.parse(x));
+          break;
+        case "setCredentials":
+          this.credentialsCallback[event.data.payload.source](
+            event.data.payload.credentials
+          );
           break;
       }
     });

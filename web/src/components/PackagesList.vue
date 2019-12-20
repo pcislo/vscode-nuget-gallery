@@ -40,7 +40,8 @@ export default {
       morePackagesStatus: "loaded",
       page: 0,
       pageSize: 20,
-      queryUrl: null
+      queryUrl: null,
+      credentials: null
     };
   },
   props: {
@@ -50,6 +51,7 @@ export default {
   watch: {
     source(newValue) {
       this.queryUrl = null;
+      this.credentials = null;
       this.refresh();
     }
   },
@@ -102,7 +104,6 @@ export default {
           else this.morePackagesStatus = "all";
         })
         .catch(err => {
-          console.error(err);
           this.morePackagesStatus = "error";
         });
     },
@@ -118,7 +119,6 @@ export default {
           this.status = "loaded";
         })
         .catch(err => {
-          console.error(err);
           this.status = "error";
         });
     },
@@ -126,6 +126,43 @@ export default {
       this.selectedPackage = selectedPackage;
       this.$emit("packageChanged", selectedPackage);
     }
+  },
+  created() {
+    axios.interceptors.request.use(
+      config => {
+        if (this.credentials) {
+          let token = `${this.credentials.Username}:${this.credentials.Password}`;
+          let encodedToken = btoa(token);
+          config.headers["Authorization"] = "Basic " + encodedToken;
+        }
+        return config;
+      },
+      error => {
+        Promise.reject(error);
+      }
+    );
+
+    axios.interceptors.response.use(
+      response => response,
+      error => {
+        const originalRequest = error.config;
+        if (error.response.status === 401) {
+          return new Promise((resolve, reject) => {
+            this.$emit("getCredentials", {
+              source: this.source.url,
+              callback: res => {
+                if (res.source == this.source.url) {
+                  this.credentials = res.credentials;
+                  return axios(originalRequest)
+                    .then(response => resolve(response))
+                    .catch(error => reject(error));
+                }
+              }
+            });
+          });
+        } else Promise.reject(error);
+      }
+    );
   }
 };
 </script>
