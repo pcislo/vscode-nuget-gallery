@@ -3,7 +3,7 @@
 	"displayName": "NuGet Gallery",
 	"publisher": "patcx",
 	"description": "NuGet Gallery Extension makes installing and uninstalling NuGet packages easier",
-	"version": "0.0.4",
+	"version": "0.0.5",
 	"preview": true,
 	"icon": "docs/images/icon.png",
 	"engines": {
@@ -25,7 +25,27 @@
 			"command": "extension.start",
 			"title": "Open Gallery",
 			"category": "NuGet"
-		}]
+		}],
+		"configuration": {
+			"title": "NuGet Gallery",
+			"properties": {
+				"NugetGallery.credentialProviderFolder": {
+					"type": "string",
+					"default": "%UserProfile%/.nuget/plugins/netfx/CredentialProvider.Microsoft",
+					"description": "Folder path containing CredentialProvider.Microsoft.exe"
+				},
+				"NugetGallery.sources": {
+					"type": "array",
+					"items": {
+						"type": "string"
+					},
+					"uniqueItems": true,
+					"minItems": 1,
+					"default": ["{\"name\": \"nuget.org\",\"url\": \"https://api-v2v3search-0.nuget.org\"}"],
+					"description": "NuGet sources"
+				}
+			}
+		}
 	},
 	"scripts": {
 		"vscode:prepublish": "yarn run compile",
