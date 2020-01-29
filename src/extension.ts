@@ -83,7 +83,7 @@ export function activate(context: vscode.ExtensionContext) {
 				else {
 					for (let i = 0; i < message.projects.length; i++) {
 						let project = message.projects[i];
-						let args = [message.command, project.projectPath, "package", message.package.id];
+						let args = [message.command, project.projectPath.replace(/\\/g, "/"), "package", message.package.id];
 						if (message.command === 'add') {
 							args.push("-v");
 							args.push(message.version);
