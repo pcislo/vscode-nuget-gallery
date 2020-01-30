@@ -12,6 +12,10 @@ NuGet Gallery Extension makes installing and uninstalling NuGet packages easier
 
 ## Release Notes
 
+### v0.0.7
+
+Fix project path on *nix terminals. [#14](https://github.com/pcislo/vscode-nuget-gallery/pull/14) by [@renatodarrigo](https://github.com/renatodarrigo)
+
 ### v0.0.6
 
 Fix default NuGet Feed url
