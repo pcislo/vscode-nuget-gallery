@@ -4,9 +4,9 @@ import * as vscode from 'vscode';
 import * as path from 'path';
 
 import { TaskManager } from './taskManager';
+import parseProject from './parseProject';
 
-const xpath = require('xpath');
-const dom = require('xmldom').DOMParser;
+
 const fs = require("fs");
 const axios = require('axios').default;
 const exec = require('child_process').exec;
@@ -28,21 +28,7 @@ function loadProjects(panel: vscode.WebviewPanel) {
 	vscode.workspace.findFiles("**/*.csproj").then(files => {
 		let projects = Array();
 		files.map(x => x.fsPath).forEach(x => {
-			let document = new dom().parseFromString(fs.readFileSync(x, "utf8"));
-			let packagesReferences = xpath.select("//ItemGroup/PackageReference", document);
-			let project = {
-				path: x,
-				projectName: path.basename(x),
-				packages: Array()
-			};
-			packagesReferences.forEach((p: any) => {
-				let projectPackage = {
-
-					id: p.attributes.getNamedItem("Include").value,
-					version: p.attributes.getNamedItem("Version").value
-				};
-				project.packages.push(projectPackage);
-			});
+			let project = parseProject(x);
 			projects.push(project);
 		});
 		postMessage(panel, "setProjects", projects.sort((a, b) => a.path < b.path ? -1 : a.path > b.path ? 1 : 0));
