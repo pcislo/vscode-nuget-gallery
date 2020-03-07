@@ -130,7 +130,6 @@ export default {
   },
   created() {
     window.addEventListener("message", event => {
-      console.log("WEB: Received message", event);
       switch (event.data.command) {
         case "setProjects":
           this.rawProjects = event.data.payload;
