@@ -12,6 +12,11 @@ NuGet Gallery Extension makes installing and uninstalling NuGet packages easier
 
 ## Release Notes
 
+### v0.0.8
+
+Fix projects loading when packages have no version specified [#14](https://github.com/pcislo/vscode-nuget-gallery/pull/17)
+
+
 ### v0.0.7
 
 Fix project path on *nix terminals. [#14](https://github.com/pcislo/vscode-nuget-gallery/pull/14) by [@renatodarrigo](https://github.com/renatodarrigo)
