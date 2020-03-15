@@ -13,9 +13,18 @@
       >
         <input type="checkbox" v-model="selectedProjects" :value="project" />
         <span>{{ project.projectName }}</span>
-        <span v-if="project.version" class="version-badge">{{
-          project.version
-        }}</span>
+        <span v-if="project.version">
+          <span class="version-badge">{{
+              project.version
+            }}
+            <a  @click="uninstall([project])"><u>Uninstall</u></a>
+          </span>             
+        </span>
+        <span v-else>
+          <span>
+            <a  @click="install([project])"><u>Install</u></a>
+          </span>
+        </span>
       </div>
     </div>
     <loader v-else />
@@ -25,8 +34,8 @@
           {{ version }}
         </option>
       </select>
-      <button @click="install">Install</button>
-      <button @click="uninstall">Uninstall</button>
+      <button :class="{ disabled: !canInstall() }" @click="install(selectedProjects)">Install</button>
+      <button :class="{ disabled: !canUninstall() }" @click="uninstall(selectedProjects)">Uninstall</button>
     </div>
   </div>
 </template>
@@ -72,20 +81,37 @@ export default {
     packageAuthors: Array
   },
   methods: {
-    install() {
-      if (this.selectedProjects && this.selectedProjects.length > 0) {
+    install(projectsToInstall) {
+      if (projectsToInstall && projectsToInstall.length > 0) {
         this.$emit("install", {
-          selectedProjects: this.selectedProjects,
+          selectedProjects: projectsToInstall,
           selectedVersion: this.selectedVersion
         });
       }
     },
-    uninstall() {
-      if (this.selectedProjects && this.selectedProjects.length > 0) {
+    uninstall(projectsToUninstall) {      
+      if (projectsToUninstall && projectsToUninstall.length > 0) {
         this.$emit("uninstall", {
-          selectedProjects: this.selectedProjects
+          selectedProjects: projectsToUninstall
         });
       }
+    },
+    canInstall() {
+      let safeSelectedVersion = this.selectedVersion;
+      return (this.selectedProjects 
+      && this.selectedProjects.length > 0
+      && this.selectedProjects.every(function (p) {
+        return (p.version === null 
+        || (safeSelectedVersion !== null && p.version !== safeSelectedVersion));        
+      }));
+    },
+    canUninstall() {      
+      let safeSelectedVersion = this.selectedVersion;
+      return (this.selectedProjects 
+      && this.selectedProjects.length > 0
+      && this.selectedProjects.every(function (project) {        
+        return (project.version && project.version === safeSelectedVersion)        
+      }));
     }
   }
 };
@@ -97,7 +123,10 @@ export default {
 }
 .projects-list {
   border-top: 1px solid var(--vscode-sideBar-border);
-  border-bottom: 1px solid var(--vscode-sideBar-border);
+  border-bottom: 1px solid var(--vscode-sideBar-border);  
+}
+.projects-list-item {
+  margin-bottom: 4px;
 }
 
 .version-badge {
