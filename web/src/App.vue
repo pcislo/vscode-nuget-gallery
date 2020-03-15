@@ -188,11 +188,8 @@ button:hover {
 
 button.disabled {
   background: var(--vscode-activityBar-background);
-  color: var(--vscode-activityBar-inactiveForeground);  
-}
-
-button.disabled:hover {  
-  cursor: not-allowed;
+  color: var(--vscode-activityBar-inactiveForeground);
+  pointer-events: none;
 }
 
 .container {
