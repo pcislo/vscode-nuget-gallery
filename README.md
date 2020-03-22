@@ -12,6 +12,17 @@ NuGet Gallery Extension makes installing and uninstalling NuGet packages easier
 
 ## Release Notes
 
+### v0.0.9
+
+[#18](https://github.com/pcislo/vscode-nuget-gallery/pull/18) by [@nikhilogic](https://github.com/nikhilogic)
+
+* Added validation on Install and Uninstall buttons in the ProjectsPanel so buttons are enabled or disabled
+* Added links to quickly install and uninstall with single clicks.
+* Increased spacing between project items for clarity.
+* Added styles for disabling buttons and anchor tags.
+
+
+
 ### v0.0.8
 
 Fix projects loading when packages have no version specified [#14](https://github.com/pcislo/vscode-nuget-gallery/pull/17)
