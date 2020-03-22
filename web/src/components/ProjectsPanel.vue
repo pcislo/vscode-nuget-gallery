@@ -16,9 +16,9 @@
         <span v-if="project.version">
           <span class="version-badge">{{
               project.version
-            }}
-            <a  @click="uninstall([project])"><u>Uninstall</u></a>
+            }}            
           </span>             
+          <a  @click="uninstall([project])"><u>Uninstall</u></a>
         </span>
         <span v-else>
           <span>
