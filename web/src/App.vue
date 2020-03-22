@@ -186,6 +186,12 @@ button:hover {
   cursor: pointer;
 }
 
+button.disabled {
+  background: var(--vscode-activityBar-background);
+  color: var(--vscode-activityBar-inactiveForeground);
+  pointer-events: none;
+}
+
 .container {
   display: grid;
   height: 100%;
@@ -205,5 +211,15 @@ button:hover {
   grid-column: 1;
   border-right: 1px solid var(--vscode-sideBar-border);
   overflow: auto;
+}
+
+a {  
+  color: var(--vscode-editorLink-activeForeground);
+  margin: 4px;  
+}
+
+a:hover {  
+  background: var(--vscode-editor-hoverHighlightBackground);
+  cursor: pointer;
 }
 </style>
