@@ -19,7 +19,15 @@ function postMessage(panel: vscode.WebviewPanel, command: string, payload: objec
 }
 
 function readCredentials(configuration: vscode.WorkspaceConfiguration, source: string, credentialsCallback: Function) {
-	exec(configuration.credentialProviderFolder + "/CredentialProvider.Microsoft.exe -C -F Json -U " + source, function callback(error: any, stdout: any, stderr: any) {
+	let command = "";
+	if (process.platform === 'win32') {
+		command = configuration.credentialProviderFolder + "/CredentialProvider.Microsoft.exe";
+	}
+	else {
+		command = "dotnet " + configuration.credentialProviderFolder + "/CredentialProvider.Microsoft.dll";
+	}
+	exec(command + " -C -F Json -U " + source, function callback(error: any, stdout: any, stderr: any) {
+		console.log(stderr)
 		credentialsCallback({ source: source, credentials: JSON.parse(stdout) });
 	});
 }
@@ -62,6 +70,7 @@ export function activate(context: vscode.ExtensionContext) {
 					postMessage(panel, "setSources", configuration.sources);
 				}
 				else if (message.command === "getCredentials") {
+
 					readCredentials(configuration, message.source, (cred: Object) => {
 						postMessage(panel, "setCredentials", { source: message.source, credentials: cred });
 					});
