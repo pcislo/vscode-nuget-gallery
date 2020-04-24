@@ -12,6 +12,10 @@ NuGet Gallery Extension makes installing and uninstalling NuGet packages easier
 
 ## Release Notes
 
+### v0.0.10
+
+Add support for credentials provider on linux/mac
+
 ### v0.0.9
 
 [#18](https://github.com/pcislo/vscode-nuget-gallery/pull/18) by [@nikhilogic](https://github.com/nikhilogic)
