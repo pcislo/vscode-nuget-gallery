@@ -9,7 +9,8 @@
         :filter="filter"
         :source="currentSource"
         @packageChanged="packageChanged"
-        @getCredentials="fetchCredentials"
+        @refreshPackages="refreshPackages"
+        @queryPackagesPage="queryPackagesPage"
         ref="packagesList"
       />
     </div>
@@ -34,7 +35,6 @@ import ProjectsPanel from "@/components/ProjectsPanel";
 import PackagesList from "@/components/PackagesList";
 
 import _ from "lodash";
-import axios from "axios";
 
 const vscode = acquireVsCodeApi();
 
@@ -94,6 +94,18 @@ export default {
       this.selectedPackage = value;
       this.recalculateProjectsList();
     },
+    refreshPackages(value) {
+      vscode.postMessage({
+        command: "refreshPackages",
+        payload: value
+      });
+    },
+    queryPackagesPage(value) {
+      vscode.postMessage({
+        command: "queryPackagesPage",
+        payload: value
+      });
+    },
     updateFilter(value) {
       this.filter = value;
       this.debouncedListRefresh();
@@ -119,13 +131,6 @@ export default {
         projects: data.selectedProjects,
         package: this.selectedPackage
       });
-    },
-    fetchCredentials(req) {
-      this.credentialsCallback[req.source] = req.callback;
-      vscode.postMessage({
-        command: "getCredentials",
-        source: req.source
-      });
     }
   },
   created() {
@@ -136,12 +141,13 @@ export default {
           this.recalculateProjectsList();
           break;
         case "setSources":
-          this.nugetSources = event.data.payload.map(x => JSON.parse(x));
+          this.nugetSources = event.data.payload;
           break;
-        case "setCredentials":
-          this.credentialsCallback[event.data.payload.source](
-            event.data.payload.credentials
-          );
+        case "listPackages":
+          this.$refs.packagesList.listPackages(event.data.payload);
+          break;
+        case "appendPackages":
+          this.$refs.packagesList.appendPackages(event.data.payload);
           break;
       }
     });
@@ -213,12 +219,12 @@ button.disabled {
   overflow: auto;
 }
 
-a {  
+a {
   color: var(--vscode-editorLink-activeForeground);
-  margin: 4px;  
+  margin: 4px;
 }
 
-a:hover {  
+a:hover {
   background: var(--vscode-editor-hoverHighlightBackground);
   cursor: pointer;
 }

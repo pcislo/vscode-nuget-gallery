@@ -1,15 +1,14 @@
 // The module 'vscode' contains the VS Code extensibility API
 // Import the module and reference it with the alias vscode in your code below
-import * as vscode from 'vscode';
+import axios, { AxiosRequestConfig } from 'axios';
+import { exec } from 'child_process';
+import * as fs from "fs";
 import * as path from 'path';
-
-import { TaskManager } from './taskManager';
+import * as vscode from 'vscode';
+import parseNugetConfig from './parseNugetConfig';
 import parseProject from './parseProject';
-
-
-const fs = require("fs");
-const axios = require('axios').default;
-const exec = require('child_process').exec;
+import { TaskManager } from './taskManager';
+import { Credentials, GetNugetPackagesPageData, GetNugetSourceData, GetNugetSourceRequest as LoadNugetPackagesRequest, NugetSource, Package } from './types';
 
 // this method is called when your extension is activated
 // your extension is activated the very first time the command is executed
@@ -18,7 +17,11 @@ function postMessage(panel: vscode.WebviewPanel, command: string, payload: objec
 	panel.webview.postMessage({ command: command, payload: payload });
 }
 
-function readCredentials(configuration: vscode.WorkspaceConfiguration, source: string, credentialsCallback: Function) {
+async function readCredentials(configuration: vscode.WorkspaceConfiguration, source: NugetSource): Promise<Credentials | undefined> {
+	if (!!source?.credentials) {
+		return source.credentials;
+	}
+
 	let command = "";
 	if (process.platform === 'win32') {
 		command = configuration.credentialProviderFolder + "/CredentialProvider.Microsoft.exe";
@@ -26,14 +29,30 @@ function readCredentials(configuration: vscode.WorkspaceConfiguration, source: s
 	else {
 		command = "dotnet " + configuration.credentialProviderFolder + "/CredentialProvider.Microsoft.dll";
 	}
-	exec(command + " -C -F Json -U " + source, function callback(error: any, stdout: any, stderr: any) {
-		console.log(stderr)
-		credentialsCallback({ source: source, credentials: JSON.parse(stdout) });
-	});
+
+	return new Promise<Credentials | undefined>((resolve) => {
+		exec(command + " -C -F Json -U " + source.name, function callback(commandError: any, stdout: any, stderr: any) {
+			console.error(stderr)
+
+			if (!!commandError) {
+				console.error(`Error getting credentials for NuGet source ${source.name}`, commandError);
+				return resolve();
+			}
+
+			let credentials: Credentials | undefined;
+			try {
+				credentials = JSON.parse(stdout) as Credentials | undefined;
+			} catch (parserError) {
+				console.error(`Error getting credentials for NuGet source ${source.name}`, parserError);
+			}
+
+			resolve(credentials);
+		});
+	})
 }
 
 function loadProjects(panel: vscode.WebviewPanel) {
-	vscode.workspace.findFiles("**/*.csproj").then(files => {
+	vscode.workspace.findFiles("**/*.*proj").then(files => {
 		let projects = Array();
 		files.map(x => x.fsPath).forEach(x => {
 			let project = parseProject(x);
@@ -43,10 +62,51 @@ function loadProjects(panel: vscode.WebviewPanel) {
 	});
 }
 
+async function loadPackages(panel: vscode.WebviewPanel, source: NugetSource, page: number, pageSize: number, filter?: string): Promise<Package[]> {
+	const baseRequestConfig: AxiosRequestConfig = {
+		auth: !!source.credentials
+			? { username: source.credentials.Username, password: source.credentials.Password }
+			: undefined
+	}
+
+	const sourceInfo = await sendHttpRequest<GetNugetSourceData>({
+		...baseRequestConfig,
+		url: source.url
+	});
+
+	let resource = sourceInfo.resources.find(x =>
+		x["@type"].includes("SearchQueryService")
+	);
+
+	const packages = await sendHttpRequest<GetNugetPackagesPageData>({
+		...baseRequestConfig,
+		url: resource?.["@id"],
+		params: {
+			q: filter,
+			take: pageSize,
+			skip: page * pageSize
+		}
+	})
+
+
+	var sanitizedPackages = packages.data.map(p => ({
+		id: p.id,
+		iconUrl: p.iconUrl,
+		summary: p.summary,
+		description: p.description,
+		authors: typeof p.authors === "string" ? [p.authors] : p.authors,
+		version: p.version,
+		versions: p.versions
+	}));
+
+	return sanitizedPackages;
+}
+
 export function activate(context: vscode.ExtensionContext) {
 
-	context.subscriptions.push(vscode.commands.registerCommand('extension.start', () => {
+	context.subscriptions.push(vscode.commands.registerCommand('extension.start', async () => {
 		let configuration = vscode.workspace.getConfiguration("NugetGallery");
+
 		const panel = vscode.window.createWebviewPanel(
 			'nuget-gallery', // Identifies the type of the webview. Used internally
 			'NuGet Gallery', // Title of the panel displayed to the user
@@ -59,7 +119,10 @@ export function activate(context: vscode.ExtensionContext) {
 				loadProjects(panel);
 			}
 		});
+
 		vscode.tasks.onDidEndTask(e => taskManager.handleDidEndTask(e));
+
+		const sources = await collectNugetSources(configuration);
 
 		panel.webview.onDidReceiveMessage(
 			async message => {
@@ -67,13 +130,29 @@ export function activate(context: vscode.ExtensionContext) {
 					loadProjects(panel);
 				}
 				else if (message.command === "reloadSources") {
-					postMessage(panel, "setSources", configuration.sources);
+					postMessage(panel, "setSources", sources);
 				}
-				else if (message.command === "getCredentials") {
+				else if (message.command === "refreshPackages") {
+					const { source, page, pageSize, filter } = message.payload as LoadNugetPackagesRequest;
 
-					readCredentials(configuration, message.source, (cred: Object) => {
-						postMessage(panel, "setCredentials", { source: message.source, credentials: cred });
-					});
+					try {
+						const packages = await loadPackages(panel, source, page, pageSize, filter);
+
+						postMessage(panel, "listPackages", packages);
+					} catch (error) {
+						vscode.window.showErrorMessage(`Error getting packages from ${message.payload.source.name}: ${error.message}`);
+					}
+				}
+				else if (message.command === "queryPackagesPage") {
+					const { source, page, pageSize, filter } = message.payload as LoadNugetPackagesRequest;
+
+					try {
+						const packages = await loadPackages(panel, source, page, pageSize, filter);
+
+						postMessage(panel, "appendPackages", packages);
+					} catch (error) {
+						vscode.window.showErrorMessage(`Error getting packages from ${message.payload.source.name}: ${error.message}`);
+					}
 				}
 				else {
 					for (let i = 0; i < message.projects.length; i++) {
@@ -99,11 +178,48 @@ export function activate(context: vscode.ExtensionContext) {
 			context.subscriptions
 		);
 
-
 		let html = fs.readFileSync(path.join(context.extensionPath, 'web/dist', 'index.html'), "utf8");
 		panel.webview.html = html;
 	}));
+}
 
+async function sendHttpRequest<T>(config: AxiosRequestConfig): Promise<T> {
+	const response = await axios.request<T>(config);
+
+	return response.data;
+}
+
+async function collectNugetSources(configuration: vscode.WorkspaceConfiguration): Promise<NugetSource[]> {
+	const nugetConfigs = await vscode.workspace.findFiles("**/nuget.config");
+	const sourcesFromExtension = configuration.sources.map((s: string) => JSON.parse(s));
+
+	if (!nugetConfigs.length) {
+		return sourcesFromExtension;
+	}
+
+	const parsedSources = parseNugetConfig(nugetConfigs[0]);
+
+	const distinctSourcesMap = parsedSources
+		.concat(...sourcesFromExtension)
+		.reduce((sourcesMap: Map<string, NugetSource>, source: NugetSource) => {
+			if (sourcesMap.has(source.name)) {
+				return sourcesMap;
+			}
+
+			return sourcesMap.set(source.name, source);
+		}, new Map<string, NugetSource>());
+
+	const allSources = Array.from(distinctSourcesMap.values());
+
+	return Promise.all(
+		allSources.map(async source => {
+			let credentials = source.credentials ?? await readCredentials(configuration, source)
+
+			return {
+				...source,
+				credentials
+			};
+		}));
 }
 
 // this method is called when your extension is deactivated

@@ -21,11 +21,13 @@
 	],
 	"main": "./out/extension.js",
 	"contributes": {
-		"commands": [{
-			"command": "extension.start",
-			"title": "Open Gallery",
-			"category": "NuGet"
-		}],
+		"commands": [
+			{
+				"command": "extension.start",
+				"title": "Open Gallery",
+				"category": "NuGet"
+			}
+		],
 		"configuration": {
 			"title": "NuGet Gallery",
 			"properties": {
@@ -41,7 +43,9 @@
 					},
 					"uniqueItems": true,
 					"minItems": 1,
-					"default": ["{\"name\": \"nuget.org\",\"url\": \"https://api.nuget.org/v3/index.json\"}"],
+					"default": [
+						"{\"name\": \"nuget.org\",\"url\": \"https://api.nuget.org/v3/index.json\"}"
+					],
 					"description": "NuGet sources"
 				}
 			}
@@ -59,6 +63,7 @@
 		"@types/mocha": "^5.2.6",
 		"@types/node": "^10.12.21",
 		"@types/vscode": "^1.37.0",
+		"@types/xmldom": "^0.1.29",
 		"glob": "^7.1.4",
 		"mocha": "^6.1.4",
 		"tslint": "^5.12.1",
