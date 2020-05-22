@@ -18,8 +18,6 @@
 </template>
 
 <script>
-/* eslint-disable no-console */
-
 import PackagesListItem from "@/components/PackagesListItem";
 import Loader from "@/components/Loader";
 
