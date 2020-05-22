@@ -58,8 +58,6 @@ export default {
         return;
       }
 
-      console.log("IN onScroll()");
-
       let bottom = e.target.scrollTop + e.target.getBoundingClientRect().height;
       let height = this.$refs.innerContainer.getBoundingClientRect().height;
 
@@ -71,17 +69,11 @@ export default {
     refresh() {
       if (!this.source) return;
 
-      console.log(`IN refresh()`);
-
       this.status = "loading";
 
       this.page = 0;
       this.selectPackage(null);
       this.packages = null;
-
-      console.log(`source ${this.source.name}`);
-      console.log(`status ${this.status}`);
-      console.log(`morePackagesStatus ${this.morePackagesStatus}`);
 
       this.$emit("refreshPackages", {
         source: this.source,
@@ -91,25 +83,13 @@ export default {
       });
     },
     listPackages(packages) {
-      console.log("IN listPackages()");
-
       this.packages = packages;
       this.status = "loaded";
-
-      console.log(`${packages.length} packages`);
-      console.log(`status ${this.status}`);
-      console.log(`morePackagesStatus ${this.morePackagesStatus}`);
     },
     queryNextPackagesPage() {
       if (!this.source) return;
 
-      console.log(`IN queryNextPackagesPage()`);
-
       this.morePackagesStatus = "loading";
-
-      console.log(`source ${this.source.name}`);
-      console.log(`status ${this.status}`);
-      console.log(`morePackagesStatus ${this.morePackagesStatus}`);
 
       this.$emit("queryPackagesPage", {
         source: this.source,
@@ -119,18 +99,12 @@ export default {
       });
     },
     appendPackages(packages) {
-      console.log("IN appendPackages()");
-
       if (packages.length > 0) {
         this.morePackagesStatus = "loaded";
         this.packages = packages.forEach(p => this.packages.push(p));
       } else {
         this.morePackagesStatus = "all";
       }
-
-      console.log(`${packages.length} packages`);
-      console.log(`status ${this.status}`);
-      console.log(`morePackagesStatus ${this.morePackagesStatus}`);
     },
     selectPackage(selectedPackage) {
       this.selectedPackage = selectedPackage;
