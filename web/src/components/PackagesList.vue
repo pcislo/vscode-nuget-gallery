@@ -99,7 +99,7 @@ export default {
     appendPackages(packages) {
       if (packages.length > 0) {
         this.morePackagesStatus = "loaded";
-        this.packages = packages.forEach(p => this.packages.push(p));
+        packages.forEach(p => this.packages.push(p));
       } else {
         this.morePackagesStatus = "all";
       }
