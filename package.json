@@ -2,8 +2,9 @@
 	"name": "vscode-nuget-gallery",
 	"displayName": "NuGet Gallery",
 	"publisher": "patcx",
+	"license": "ISC",
 	"description": "NuGet Gallery Extension makes installing and uninstalling NuGet packages easier",
-	"version": "0.0.13",
+	"version": "0.0.14",
 	"preview": true,
 	"icon": "docs/images/icon.png",
 	"engines": {
