@@ -46,12 +46,16 @@ export default {
   },
   props: {
     filter: String,
+    isPrerelease: Boolean,
     source: Object
   },
   watch: {
-    source(newValue) {
+    source() {
       this.queryUrl = null;
       this.credentials = null;
+      this.refresh();
+    },
+    isPrerelease(){
       this.refresh();
     }
   },
@@ -89,7 +93,8 @@ export default {
         params: {
           q: this.filter,
           take: this.pageSize,
-          skip: this.page * this.pageSize
+          skip: this.page * this.pageSize,
+          prerelease: this.isPrerelease
         }
       });
     },
