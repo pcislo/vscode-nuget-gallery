@@ -62,7 +62,7 @@ function loadProjects(panel: vscode.WebviewPanel) {
 	});
 }
 
-async function loadPackages(panel: vscode.WebviewPanel, source: NugetSource, page: number, pageSize: number, filter?: string): Promise<Package[]> {
+async function loadPackages(panel: vscode.WebviewPanel, source: NugetSource, page: number, pageSize: number, filter?: string, isPrerelease?: boolean): Promise<Package[]> {
 	const baseRequestConfig: AxiosRequestConfig = {
 		auth: !!source.credentials
 			? { username: source.credentials.Username, password: source.credentials.Password }
@@ -84,7 +84,8 @@ async function loadPackages(panel: vscode.WebviewPanel, source: NugetSource, pag
 		params: {
 			q: filter,
 			take: pageSize,
-			skip: page * pageSize
+			skip: page * pageSize,
+			prerelease: isPrerelease
 		}
 	})
 
@@ -133,10 +134,10 @@ export function activate(context: vscode.ExtensionContext) {
 					postMessage(panel, "setSources", sources);
 				}
 				else if (message.command === "refreshPackages") {
-					const { source, page, pageSize, filter } = message.payload as LoadNugetPackagesRequest;
+					const { source, page, pageSize, filter, isPrerelease } = message.payload as LoadNugetPackagesRequest;
 
 					try {
-						const packages = await loadPackages(panel, source, page, pageSize, filter);
+						const packages = await loadPackages(panel, source, page, pageSize, filter, isPrerelease);
 
 						postMessage(panel, "listPackages", packages);
 					} catch (error) {
@@ -144,10 +145,10 @@ export function activate(context: vscode.ExtensionContext) {
 					}
 				}
 				else if (message.command === "queryPackagesPage") {
-					const { source, page, pageSize, filter } = message.payload as LoadNugetPackagesRequest;
+					const { source, page, pageSize, filter, isPrerelease } = message.payload as LoadNugetPackagesRequest;
 
 					try {
-						const packages = await loadPackages(panel, source, page, pageSize, filter);
+						const packages = await loadPackages(panel, source, page, pageSize, filter, isPrerelease);
 
 						postMessage(panel, "appendPackages", packages);
 					} catch (error) {

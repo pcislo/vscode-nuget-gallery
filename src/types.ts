@@ -13,7 +13,8 @@ export interface GetNugetSourceRequest {
   readonly source: NugetSource,
   readonly page: number,
   readonly pageSize: number,
-  readonly filter?: string
+  readonly filter?: string,
+  readonly isPrerelease?: boolean
 }
 
 export interface Resource {
