@@ -39,11 +39,14 @@ export default {
   },
   props: {
     filter: String,
+    isPrerelease: Boolean,
     source: Object
   },
   watch: {
-    // eslint-disable-next-line no-unused-vars
-    source(newValue) {
+    source() {
+      this.refresh();
+    },
+    isPrerelease(){
       this.refresh();
     }
   },
@@ -77,7 +80,8 @@ export default {
         source: this.source,
         page: this.page,
         pageSize: this.pageSize,
-        filter: this.filter
+        filter: this.filter,
+        prerelease: this.isPrerelease
       });
     },
     listPackages(packages) {

@@ -12,6 +12,10 @@ NuGet Gallery Extension makes installing and uninstalling NuGet packages easier
 
 ## Release Notes
 
+### v0.0.12
+
+Add support for prerelease versions
+
 ### v0.0.10
 
 Add support for credentials provider on linux/mac

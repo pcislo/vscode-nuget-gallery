@@ -1,12 +1,13 @@
 <template>
   <div class="container">
     <div class="header">
-      <filters @filterChanged="updateFilter($event)" @filter="refreshList" />
+      <filters @filterChanged="updateFilter($event)" @filter="refreshList" @isPrerelease="isPrerelease = $event" />
       <source-selector :sources="nugetSources" @sourceChanged="changeSource" />
     </div>
     <div class="packages-list">
       <packages-list
         :filter="filter"
+        :isPrerelease="isPrerelease"
         :source="currentSource"
         @packageChanged="packageChanged"
         @refreshPackages="refreshPackages"
@@ -48,6 +49,7 @@ export default {
   },
   data() {
     return {
+      isPrerelease: false,
       currentSource: null,
       filter: null,
       selectedPackage: null,
