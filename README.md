@@ -12,7 +12,7 @@ NuGet Gallery Extension makes installing and uninstalling NuGet packages easier
 
 ## Release Notes
 
-### v0.0.14
+### v0.0.19
 
 Add support for prerelease versions
 
