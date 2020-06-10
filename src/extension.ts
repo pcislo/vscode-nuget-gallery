@@ -34,6 +34,10 @@ async function readCredentials(configuration: vscode.WorkspaceConfiguration, sou
 		exec(command + " -C -F Json -U " + source.name, function callback(_: any, stdout: any, stderr: any) {
 			console.error(stderr)
 
+			if (!stdout) {
+				return resolve();
+			}
+
 			let credentials: Credentials | undefined;
 			try {
 				credentials = JSON.parse(stdout) as Credentials | undefined;
