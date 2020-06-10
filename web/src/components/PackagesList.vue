@@ -81,7 +81,7 @@ export default {
         page: this.page,
         pageSize: this.pageSize,
         filter: this.filter,
-        prerelease: this.isPrerelease
+        isPrerelease: this.isPrerelease
       });
     },
     listPackages(packages) {

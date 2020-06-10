@@ -8,3 +8,9 @@ vsc-extension-quickstart.md
 **/tslint.json
 **/*.map
 **/*.ts
+web/node_modules/**
+**/babel.config.js
+**/package-lock.json
+**/yarn.lock
+**/vue.config.js
+azure-pipelines.yml 

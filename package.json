@@ -3,7 +3,8 @@
 	"displayName": "NuGet Gallery",
 	"publisher": "patcx",
 	"description": "NuGet Gallery Extension makes installing and uninstalling NuGet packages easier",
-	"version": "0.0.12",
+	"license": "ISC",
+	"version": "0.0.19",
 	"preview": true,
 	"icon": "docs/images/icon.png",
 	"engines": {
@@ -67,7 +68,7 @@
 		"glob": "^7.1.4",
 		"mocha": "^7.2.0",
 		"tslint": "^5.12.1",
-		"typescript": "^3.3.1",
+		"typescript": "^3.7.0",
 		"vscode-test": "^1.0.2"
 	},
 	"dependencies": {
