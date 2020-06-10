@@ -97,7 +97,8 @@ export default {
         source: this.source,
         page: this.page,
         pageSize: this.pageSize,
-        filter: this.filter
+        filter: this.filter,
+        isPrerelease: this.isPrerelease
       });
     },
     appendPackages(packages) {
