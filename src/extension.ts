@@ -30,14 +30,9 @@ async function readCredentials(configuration: vscode.WorkspaceConfiguration, sou
 		command = "dotnet " + configuration.credentialProviderFolder + "/CredentialProvider.Microsoft.dll";
 	}
 
-	return new Promise<Credentials | undefined>((resolve) => {
-		exec(command + " -C -F Json -U " + source.name, function callback(commandError: any, stdout: any, stderr: any) {
+	return await new Promise<Credentials | undefined>((resolve) => {
+		exec(command + " -C -F Json -U " + source.name, function callback(_: any, stdout: any, stderr: any) {
 			console.error(stderr)
-
-			if (!!commandError) {
-				console.error(`Error getting credentials for NuGet source ${source.name}`, commandError);
-				return resolve();
-			}
 
 			let credentials: Credentials | undefined;
 			try {
@@ -214,7 +209,7 @@ async function collectNugetSources(configuration: vscode.WorkspaceConfiguration)
 
 	return Promise.all(
 		allSources.map(async source => {
-			let credentials = source.credentials ?? await readCredentials(configuration, source)
+			let credentials = await (source.credentials ?? readCredentials(configuration, source))
 
 			return {
 				...source,
