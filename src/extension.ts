@@ -31,7 +31,7 @@ async function readCredentials(configuration: vscode.WorkspaceConfiguration, sou
 	}
 
 	return await new Promise<Credentials | undefined>((resolve) => {
-		exec(command + " -C -F Json -U " + source.name, function callback(_: any, stdout: any, stderr: any) {
+		exec(command + " -C -F Json -U " + source.url, function callback(_: any, stdout: any, stderr: any) {
 			console.error(stderr)
 
 			if (!stdout) {
