@@ -94,7 +94,8 @@ export default {
           q: this.filter,
           take: this.pageSize,
           skip: this.page * this.pageSize,
-          prerelease: this.isPrerelease
+          prerelease: this.isPrerelease,
+          semVerLevel: "2.0.0"
         }
       });
     },
