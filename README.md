@@ -12,6 +12,12 @@ NuGet Gallery Extension makes installing and uninstalling NuGet packages easier
 
 ## Release Notes
 
+### v0.0.21
+
+[#18](https://github.com/pcislo/vscode-nuget-gallery/pull/38) by [@kojo12228](https://github.com/kojo12228)
+
+Add support for .fsproj projects
+
 ### v0.0.20
 
 Change semVerLevel to 2.0

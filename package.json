@@ -4,7 +4,7 @@
 	"publisher": "patcx",
 	"description": "NuGet Gallery Extension makes installing and uninstalling NuGet packages easier",
 	"license": "ISC",
-	"version": "0.0.20",
+	"version": "0.0.21",
 	"preview": true,
 	"icon": "docs/images/icon.png",
 	"engines": {
