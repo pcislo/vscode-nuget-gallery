@@ -4,7 +4,7 @@
 	"publisher": "patcx",
 	"description": "NuGet Gallery Extension makes installing and uninstalling NuGet packages easier",
 	"license": "ISC",
-	"version": "0.0.21",
+	"version": "0.0.22",
 	"preview": true,
 	"icon": "docs/images/icon.png",
 	"engines": {
@@ -24,9 +24,16 @@
 	"contributes": {
 		"commands": [{
 			"command": "extension.start",
-			"title": "Open Gallery",
+			"title": "Open NuGet Gallery",
 			"category": "NuGet"
 		}],
+		"menus": {
+			"explorer/context": [{
+				"when": "resourceExtname == .csproj || resourceExtname == .vbproj || resourceExtname == .fsproj || resourceExtname == .sln",
+				"command": "extension.start",
+				"group": "navigation"
+			}]
+		},
 		"configuration": {
 			"title": "NuGet Gallery",
 			"properties": {

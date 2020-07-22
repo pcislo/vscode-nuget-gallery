@@ -33,7 +33,7 @@ function readCredentials(configuration: vscode.WorkspaceConfiguration, source: s
 }
 
 function loadProjects(panel: vscode.WebviewPanel) {
-	vscode.workspace.findFiles("**/*.{csproj,fsproj}").then(files => {
+	vscode.workspace.findFiles("**/*.{csproj,fsproj,vbproj}").then(files => {
 		let projects = Array();
 		files.map(x => x.fsPath).forEach(x => {
 			let project = parseProject(x);
