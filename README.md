@@ -12,6 +12,11 @@ NuGet Gallery Extension makes installing and uninstalling NuGet packages easier
 
 ## Release Notes
 
+### v0.0.22
+
+Add support for .vbproj projects
+Add "Open NuGet Gallery" command to context menu on .csproj, .fsproj, .vbproj and .sln
+
 ### v0.0.21
 
 [#18](https://github.com/pcislo/vscode-nuget-gallery/pull/38) by [@kojo12228](https://github.com/kojo12228)
