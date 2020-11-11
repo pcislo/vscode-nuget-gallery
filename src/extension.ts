@@ -21,10 +21,10 @@ function postMessage(panel: vscode.WebviewPanel, command: string, payload: objec
 function readCredentials(configuration: vscode.WorkspaceConfiguration, source: string, credentialsCallback: Function) {
 	let command = "";
 	if (process.platform === 'win32') {
-		command = configuration.credentialProviderFolder + "/CredentialProvider.Microsoft.exe";
+		command = "\"" + configuration.credentialProviderFolder + "/CredentialProvider.Microsoft.exe\"";
 	}
 	else {
-		command = "dotnet " + configuration.credentialProviderFolder + "/CredentialProvider.Microsoft.dll";
+		command = "dotnet \"" + configuration.credentialProviderFolder + "/CredentialProvider.Microsoft.dll\"";
 	}
 	exec(command + " -C -F Json -U " + source, function callback(error: any, stdout: any, stderr: any) {
 		console.log(stderr)
