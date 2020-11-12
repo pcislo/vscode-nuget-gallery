@@ -1,7 +1,7 @@
 {
   "name": "nuget-gallery-web",
   "license": "ISC",
-  "version": "0.0.22",
+  "version": "0.0.23",
   "private": true,
   "scripts": {
     "serve": "vue-cli-service serve",

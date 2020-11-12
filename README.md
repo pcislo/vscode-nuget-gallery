@@ -12,6 +12,12 @@ NuGet Gallery Extension makes installing and uninstalling NuGet packages easier
 
 ## Release Notes
 
+### v0.0.23
+
+[#47](https://github.com/pcislo/vscode-nuget-gallery/pull/47) by [@ZBAGI](https://github.com/ZBAGI)
+
+Fix error when credentialProviderFolder contains spaces
+
 ### v0.0.22
 
 Add support for .vbproj projects
@@ -19,7 +25,7 @@ Add "Open NuGet Gallery" command to context menu on .csproj, .fsproj, .vbproj an
 
 ### v0.0.21
 
-[#18](https://github.com/pcislo/vscode-nuget-gallery/pull/38) by [@kojo12228](https://github.com/kojo12228)
+[#38](https://github.com/pcislo/vscode-nuget-gallery/pull/38) by [@kojo12228](https://github.com/kojo12228)
 
 Add support for .fsproj projects
 
