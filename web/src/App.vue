@@ -35,7 +35,6 @@ import ProjectsPanel from "@/components/ProjectsPanel";
 import PackagesList from "@/components/PackagesList";
 
 import _ from "lodash";
-import axios from "axios";
 
 const vscode = acquireVsCodeApi();
 

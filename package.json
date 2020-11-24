@@ -22,17 +22,21 @@
 	],
 	"main": "./out/extension.js",
 	"contributes": {
-		"commands": [{
-			"command": "extension.start",
-			"title": "Open NuGet Gallery",
-			"category": "NuGet"
-		}],
-		"menus": {
-			"explorer/context": [{
-				"when": "resourceExtname == .csproj || resourceExtname == .vbproj || resourceExtname == .fsproj || resourceExtname == .sln",
+		"commands": [
+			{
 				"command": "extension.start",
-				"group": "navigation"
-			}]
+				"title": "Open NuGet Gallery",
+				"category": "NuGet"
+			}
+		],
+		"menus": {
+			"explorer/context": [
+				{
+					"when": "resourceExtname == .csproj || resourceExtname == .vbproj || resourceExtname == .fsproj || resourceExtname == .sln",
+					"command": "extension.start",
+					"group": "navigation"
+				}
+			]
 		},
 		"configuration": {
 			"title": "NuGet Gallery",
@@ -49,7 +53,9 @@
 					},
 					"uniqueItems": true,
 					"minItems": 1,
-					"default": ["{\"name\": \"nuget.org\",\"url\": \"https://api.nuget.org/v3/index.json\"}"],
+					"default": [
+						"{\"name\": \"nuget.org\",\"url\": \"https://api.nuget.org/v3/index.json\"}"
+					],
 					"description": "NuGet sources"
 				}
 			}
