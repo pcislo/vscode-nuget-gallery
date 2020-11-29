@@ -84,7 +84,8 @@
             <tr>
               <td>Project Url:</td>
               <td>
-                <a target="_blank" :href="packageMetadata.projectUrl">{{ packageMetadata.projectUrl.slice(0, 85) }}</a>
+                <a v-if="packageMetadata.projectUrl !== undefined && packageMetadata.projectUrl !== ''" target="_blank" :href="packageMetadata.projectUrl">{{ packageMetadata.projectUrl.slice(0, 85) }}</a>
+                <span v-else>Not available</span>
               </td>
             </tr>
             <tr>
