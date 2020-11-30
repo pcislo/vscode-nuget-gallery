@@ -49,9 +49,9 @@
     </div>
    
     <div id="package-description-container">
-      <div class="package-description" v-if="packageMetadata">
+      <div class="package-description" v-if="packageMetadata !== null">
         <h2 class="title-description">Description</h2>
-      
+
         <p>{{ packageMetadata.description }}</p>
 
         <table class="table">
@@ -105,7 +105,10 @@
           <li v-if="packageMetadata.dependencyGroups.length === 0">No dependencies</li>
         </ul>
       </div>
-      <loader v-else />
+      <loader v-else-if="statusPackageMetadata == 'loading'" />
+      <div v-else>
+        <h4>Error load package metadata</h4>
+      </div>
     </div>
 
   </div>
@@ -118,7 +121,7 @@ import { setupCache } from 'axios-cache-adapter';
 import moment from 'moment';
 
 const cache = setupCache({
-  maxAge: 10 * 60 * 1000
+  maxAge: 5 * 60 * 1000
 });
 
 export default {
@@ -130,7 +133,8 @@ export default {
     return {
       selectedProjects: [],
       selectedVersion: null,
-      packageMetadata: null
+      packageMetadata: null,
+      statusPackageMetadata: 'loading'
     };
   },
   watch: {
@@ -161,6 +165,7 @@ export default {
     versions: Array,
     packageId: String,
     packageAuthors: Array,
+    source: Object
   },
   methods: {
     install(projectsToInstall) {
@@ -203,58 +208,66 @@ export default {
     },
     getInfoPackage() {
       this.packageMetadata = null;
-      const url = `https://api.nuget.org/v3/registration5-gz-semver2/${this.packageId}/index.json`.toLowerCase();
+      this.statusPackageMetadata = 'loading';
 
+      this.getUrlRegistration()
+        .then(this.getMetadataPackage)
+        .catch(err => {
+          this.statusPackageMetadata = "error";
+        });          
+    },
+    getMetadataPackage(url) {
       const api = axios.create({
         adapter: cache.adapter
       });
 
-      api({
-        url: url,
-        method: 'get'
-      }).then( async(response) => {
-        let result = [];
-        const exists = this.existsItem(response.data.items);
+      return api
+        .get(url)
+        .then( async (response) => {
+          let result = [];
+          const items = response.data.items;         
 
-        if (exists) {
-          result = this.filter(response.data.items.map(x => x.items));
-        } else {
-          const items = response.data.items;
-          let itemsPage = [];
-          let filter = [];
-          for (let index = 0, length = items.length; index < length; index++) {
-            itemsPage = await this.getRegistrationPage(items[index]['@id']);
-            filter = itemsPage.items.filter(x => x.catalogEntry.version == this.selectedVersion);
-            if(filter.length > 0) {
-              result = filter;
-              break;
-            }
+          if (this.existsItem(items)) {
+            result = this.filterItems(items.map(x => x.items));
+          } else {
+            result = await this.getMetadataPackageAlternative(items);
           }
-        }
 
-        if(result.length > 0) {    
-          const catalogEntry = result[0].catalogEntry;    
-          const dependencyGroups = this.getDependencies(catalogEntry);        
+          if (result.length > 0) {
+            const catalogEntry = result[0].catalogEntry;    
 
-          this.packageMetadata = {
-            version: catalogEntry.version,
-            authors: catalogEntry.authors,
-            license: catalogEntry.license,
-            licenseUrl: catalogEntry.licenseUrl,
-            projectUrl: catalogEntry.projectUrl,
-            description: catalogEntry.description,
-            tags: Array.isArray(catalogEntry.tags) ? catalogEntry.tags.join(', ') : catalogEntry.tags,
-            datePublished: moment(catalogEntry.published).format('dddd, MMMM D, YYYY (MM/DD/YYYY)'),
-            nugetUrl: `https://www.nuget.org/packages/${this.packageId}/${this.selectedVersion}`,
-            dependencyGroups: dependencyGroups
-          };
-        } else {
-          this.packageMetadata = {
-            description: 'Error on request',
-            dependencyGroups: []
-          };
+            this.packageMetadata = {
+              version: catalogEntry.version,
+              authors: catalogEntry.authors,
+              license: catalogEntry.license,
+              licenseUrl: catalogEntry.licenseUrl,
+              projectUrl: catalogEntry.projectUrl,
+              description: catalogEntry.description,
+              tags: Array.isArray(catalogEntry.tags) ? catalogEntry.tags.join(', ') : catalogEntry.tags,
+              datePublished: moment(catalogEntry.published).format('dddd, MMMM D, YYYY (MM/DD/YYYY)'),
+              nugetUrl: `https://www.nuget.org/packages/${this.packageId}/${this.selectedVersion}`,
+              dependencyGroups: this.getDependencies(catalogEntry)
+            };
+          }
+
+          this.statusPackageMetadata = 'loaded';
+      });
+    },
+    async getMetadataPackageAlternative(items) {
+      let result = [];    
+      let itemsPage = [];
+      let filter = [];
+
+      for (let index = 0, length = items.length; index < length; index++) {     
+        itemsPage = await this.getRegistrationPage(items[index]['@id']);
+        filter = itemsPage.items.filter(x => x.catalogEntry.version == this.selectedVersion);
+        if(filter.length > 0) {
+          result = filter;
+          break;
         }
-      });  
+      }
+
+      return result;
     },
     getDependencies(catalogEntry) {
       let dependencyGroups = [];
@@ -303,7 +316,7 @@ export default {
       }
       return exists;
     },
-    filter(items) {
+    filterItems(items) {
       let result = [];
 
       let filterResult = [];
@@ -318,17 +331,25 @@ export default {
       }
       return result;
     },
+    getUrlRegistration() {
+      return axios
+        .get(this.source.url)
+        .then(response => {
+          const resource = response.data.resources.find(x => x["@type"].includes("RegistrationsBaseUrl/Versioned"));
+          if (resource != null) {
+            return `${resource["@id"]}${this.packageId}/index.json`.toLowerCase();
+          }
+          return null; 
+        });
+    },
     getRegistrationPage(url) {
       const api = axios.create({
         adapter: cache.adapter
       });
 
-      return api({
-        url: url,
-        method: 'get'
-      }).then((response) => {
-        return response.data;
-      });
+      return api
+        .get(url)
+        .then(response =>  response.data);
     }
   }
 };

@@ -21,6 +21,7 @@
         :versions="packageVersions"
         :packageId="selectedPackage.id"
         :packageAuthors="selectedPackage.authors"
+        :source="currentSource"
         @install="install"
         @uninstall="uninstall"
       />
