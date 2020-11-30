@@ -58,9 +58,7 @@
           <tbody>
             <tr>
               <td>Open in:</td>
-              <td>
-                <a target="_blank" :href="packageMetadata.nugetUrl">nuget.org</a>
-              </td>
+              <td><a target="_blank" :href="packageMetadata.nugetUrl">nuget.org</a></td>
             </tr>
             <tr>
               <td>Version:</td>
@@ -90,7 +88,7 @@
             </tr>
             <tr>
               <td>Tags:</td>
-              <td>{{ packageMetadata.tags.join(', ') }}</td>
+              <td>{{ packageMetadata.tags }}</td>
             </tr>
           </tbody>
         </table>
@@ -245,7 +243,7 @@ export default {
             licenseUrl: catalogEntry.licenseUrl,
             projectUrl: catalogEntry.projectUrl,
             description: catalogEntry.description,
-            tags: catalogEntry.tags,
+            tags: Array.isArray(catalogEntry.tags) ? catalogEntry.tags.join(', ') : catalogEntry.tags,
             datePublished: moment(catalogEntry.published).format('dddd, MMMM D, YYYY (MM/DD/YYYY)'),
             nugetUrl: `https://www.nuget.org/packages/${this.packageId}/${this.selectedVersion}`,
             dependencyGroups: dependencyGroups
