@@ -12,6 +12,13 @@ NuGet Gallery Extension makes installing and uninstalling NuGet packages easier
 
 ## Release Notes
 
+### v0.0.24
+
+[#48](https://github.com/pcislo/vscode-nuget-gallery/pull/48) by [@claudineyqr](https://github.com/claudineyqr)
+
+Obtaining additional information about the package
+
+
 ### v0.0.23
 
 [#47](https://github.com/pcislo/vscode-nuget-gallery/pull/47) by [@ZBAGI](https://github.com/ZBAGI)

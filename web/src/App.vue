@@ -224,4 +224,8 @@ a:hover {
   background: var(--vscode-editor-hoverHighlightBackground);
   cursor: pointer;
 }
+
+#package-info{
+  overflow: auto;
+}
 </style>
