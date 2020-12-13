@@ -21,6 +21,7 @@
         :versions="packageVersions"
         :packageId="selectedPackage.id"
         :packageAuthors="selectedPackage.authors"
+        :source="currentSource"
         @install="install"
         @uninstall="uninstall"
       />
@@ -35,7 +36,6 @@ import ProjectsPanel from "@/components/ProjectsPanel";
 import PackagesList from "@/components/PackagesList";
 
 import _ from "lodash";
-import axios from "axios";
 
 const vscode = acquireVsCodeApi();
 
