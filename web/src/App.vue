@@ -11,6 +11,7 @@
         :source="currentSource"
         @packageChanged="packageChanged"
         @getCredentials="fetchCredentials"
+        @getPackages="getAmagPackages"
         ref="packagesList"
       />
     </div>
@@ -57,7 +58,8 @@ export default {
       rawProjects: [],
       nugetSources: [],
       debouncedListRefresh: _.debounce(this.refreshList, 500),
-      credentialsCallback: {}
+      credentialsCallback: {},
+      packagesCallback: {}
     };
   },
   computed: {
@@ -128,10 +130,19 @@ export default {
         command: "getCredentials",
         source: req.source
       });
+    },
+    getAmagPackages(req){
+      this.packagesCallback[req.source] = req.callback;
+      vscode.postMessage({
+        command: "getPackages",
+        source: req.source,
+        params: req.params
+      });
     }
   },
   created() {
     window.addEventListener("message", event => {
+      debugger;
       switch (event.data.command) {
         case "setProjects":
           this.rawProjects = event.data.payload;
@@ -140,6 +151,12 @@ export default {
         case "setSources":
           this.nugetSources = event.data.payload.map(x => JSON.parse(x));
           break;
+        case "getPackages":
+          debugger;
+          this.packagesCallback[event.data.payload.source](
+            event.data.payload.packages
+          );
+        break;
         case "setCredentials":
           this.credentialsCallback[event.data.payload.source](
             event.data.payload.credentials

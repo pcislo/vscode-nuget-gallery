@@ -69,7 +69,9 @@ export default {
       }
     },
     createQuery() {
-      if (this.queryUrl == null) {
+      if (!this.source.url.includes("amag-symmetry"))
+      {
+        if (this.queryUrl == null) {
         return new Promise((resolve, reject) => {
           axios
             .get(this.source.url)
@@ -98,6 +100,29 @@ export default {
           semVerLevel: "2.0.0"
         }
       });
+      }
+      else {
+        return new Promise((resolve, reject) => {
+          this.$emit("getPackages", {
+          source: this.source.url,
+          params: {
+            q: this.filter,
+            take: this.pageSize,
+            skip: this.page * this.pageSize,
+            prerelease: this.isPrerelease,
+            semVerLevel: "2.0.0"
+          },
+          callback: res => {            
+            if (res.data.data) {
+              resolve(res);
+            }
+            else {
+              reject(res);
+            }
+          }
+        });         
+        });        
+      }      
     },
     appendPackages() {
       if (this.source == null) return;
@@ -152,7 +177,7 @@ export default {
       response => response,
       error => {
         const originalRequest = error.config;
-        if (error.response.status === 401) {
+        if (error.response.status === 401) {          
           return new Promise((resolve, reject) => {
             this.$emit("getCredentials", {
               source: this.source.url,

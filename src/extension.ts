@@ -10,6 +10,7 @@ import parseProject from './parseProject';
 const fs = require("fs");
 const axios = require('axios').default;
 const exec = require('child_process').exec;
+let queryUrl:any = null;
 
 // this method is called when your extension is activated
 // your extension is activated the very first time the command is executed
@@ -30,6 +31,38 @@ function readCredentials(configuration: vscode.WorkspaceConfiguration, source: s
 		console.log(stderr)
 		credentialsCallback({ source: source, credentials: JSON.parse(stdout) });
 	});
+}
+function getAmagPackagesExtension(message: any, packagesCallback: Function) {
+  const createQuery = () => {
+    if (queryUrl == null) {
+      return new Promise((resolve, reject) => {
+        axios
+          .get(message.source)
+          .then((response: { data: { resources: any[]; }; }) => {
+            let resource = response.data.resources.find(x =>
+              x["@type"].includes("SearchQueryService")
+            );
+            if (resource != null) queryUrl = resource["@id"];
+            if (queryUrl == null) reject();
+            createQuery()
+              .then((response: unknown) => resolve(response))
+              .catch((error: any) => reject(error));
+          })
+          .catch((error: any) => {
+            reject(error);
+          });
+      });
+    }
+
+    return axios.get(queryUrl, {
+      params: message.params
+    });
+  };
+  createQuery().then((response: any) => {
+    packagesCallback(response)
+  }, (error: any) => {
+    packagesCallback(error)
+  });
 }
 
 function loadProjects(panel: vscode.WebviewPanel) {
@@ -75,6 +108,11 @@ export function activate(context: vscode.ExtensionContext) {
 						postMessage(panel, "setCredentials", { source: message.source, credentials: cred });
 					});
 				}
+        else if (message.command === "getPackages"){
+          getAmagPackagesExtension(message, (pack: any) => {
+            postMessage(panel, "getPackages", { source: message.source, packages: {data : pack.data ? pack.data : pack.message }});
+          });
+        }
 				else {
 					for (let i = 0; i < message.projects.length; i++) {
 						let project = message.projects[i];
