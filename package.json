@@ -2,7 +2,7 @@
   "name": "vscode-nuget-gallery",
   "displayName": "NuGet Gallery",
   "publisher": "pcislo",
-	"description": "The NuGet Gallery extension streamlines the process of installing and uninstalling NuGet packages, making it more efficient and user-friendly.",
+  "description": "The NuGet Gallery extension streamlines the process of installing and uninstalling NuGet packages, making it more efficient and user-friendly.",
   "version": "0.9.0",
   "engines": {
     "vscode": "^1.87.0"
@@ -17,7 +17,7 @@
       "view/title": [
         {
           "command": "test.helloWorld",
-          "when": "view == calicoColors.colorsView",
+          "when": "nuget.gallery.view",
           "group": "navigation"
         }
       ]
@@ -25,55 +25,43 @@
     "viewsContainers": {
       "panel": [
         {
-          "id": "calicoColorscolorsView",
+          "id": "nugetGalleryView",
           "title": "NuGet",
           "icon": "resources/package-explorer.svg"
         }
       ]
     },
     "views": {
-      "calicoColorscolorsView": [
+      "nugetGalleryView": [
         {
           "type": "webview",
-          "id": "calicoColors.colorsView",
+          "id": "nuget.gallery.view",
           "name": "NuGet"
         }
       ]
-    },
-    "commands": [
-      {
-        "command": "test.helloWorld",
-        "title": "Hello World",
-        "icon": {
-          "light": "$(alert)",
-          "dark": "$(alert)"
-        }
-      }
-    ]
+    }
   },
   "scripts": {
-    "vscode:prepublish": "npm run package",
-    "compile": "webpack",
-    "watch": "webpack --watch",
-    "package": "webpack --mode production --devtool hidden-source-map",
-    "compile-tests": "tsc -p . --outDir out",
-    "watch-tests": "tsc -p . -w --outDir out",
-    "pretest": "npm run compile-tests && npm run compile && npm run lint",
+    "vscode:prepublish": "node ./esbuild.js",
     "lint": "eslint src --ext ts",
-    "test": "vscode-test"
+    "test": "vscode-test",
+    "esbuild": "node ./esbuild.js",
+    "test-compile": "tsc -p ./"
   },
   "devDependencies": {
-    "@types/vscode": "^1.87.0",
     "@types/mocha": "^10.0.6",
     "@types/node": "18.x",
+    "@types/vscode": "^1.87.0",
     "@typescript-eslint/eslint-plugin": "^7.0.2",
     "@typescript-eslint/parser": "^7.0.2",
-    "eslint": "^8.56.0",
-    "typescript": "^5.3.3",
-    "ts-loader": "^9.5.1",
-    "webpack": "^5.90.3",
-    "webpack-cli": "^5.1.4",
     "@vscode/test-cli": "^0.0.6",
-    "@vscode/test-electron": "^2.3.9"
+    "@vscode/test-electron": "^2.3.9",
+    "esbuild": "^0.20.1",
+    "eslint": "^8.56.0",
+    "typescript": "^5.3.3"
+  },
+  "dependencies": {
+    "@microsoft/fast-element": "^1.12.0",
+    "@vscode/webview-ui-toolkit": "^1.4.0"
   }
 }
