@@ -1,6 +1,11 @@
 import * as vscode from "vscode";
 import HostBus from "./messaging/host-bus";
 import nonce from "@/common/nonce";
+import Mediator from "@/common/messaging/mediator";
+import { IMediator } from "@/web/registrations";
+import { IBus } from "@/common/messaging/types";
+import { LIST_PROJECTS } from "@/common/messaging/commands";
+import { ListProjects } from "./handlers/list-projects";
 
 export function activate(context: vscode.ExtensionContext) {
   const provider = new NugetViewProvider(context.extensionUri);
@@ -20,8 +25,10 @@ class NugetViewProvider implements vscode.WebviewViewProvider {
     context: vscode.WebviewViewResolveContext,
     token: vscode.CancellationToken
   ): void | Thenable<void> {
-    let hostBus = new HostBus(webviewView.webview);
-    hostBus.registerHandler((m) => console.log(m));
+    let hostBus: IBus = new HostBus(webviewView.webview);
+    let mediator: IMediator = new Mediator(hostBus);
+
+    mediator.addHandler(LIST_PROJECTS, new ListProjects());
 
     const webSrc = webviewView.webview.asWebviewUri(
       vscode.Uri.joinPath(this._extensionUri, ...["dist", "web.js"])

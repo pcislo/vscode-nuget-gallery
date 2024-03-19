@@ -1,23 +1,14 @@
-import {
-  FASTElement,
-  customElement,
-  attr,
-  html,
-} from "@microsoft/fast-element";
+import { FASTElement, customElement, attr, html, repeat, observable } from "@microsoft/fast-element";
 
-import { IMediator, IBus } from "../../common/messaging/types";
+import { IMediator } from "@/web/registrations";
+import { LIST_PROJECTS } from "@/common/messaging/commands";
 
 const template = html<TestComponent>`
-  <div class="header">
-    <h3>${(x) => x.greeting.toUpperCase()}</h3>
-    <h4>my name is ${(x) => x.greeting}</h4>
-  </div>
-
   <div class="body">
-    TODO: Name Here
-    <vscode-button @click="${(x) => x.sendMessage()}" id="howdy"
-      >Howdy X!</vscode-button
-    >
+    <vscode-button @click="${(x) => x.sendMessage()}" id="howdy">ListProjects</vscode-button>
+    <ul>
+      ${repeat((x) => x.projects, html<any>` <li>${(x) => x.name} | ${(x) => x.version}</li> `)}
+    </ul>
   </div>
 
   <div class="footer"></div>
@@ -29,16 +20,9 @@ const template = html<TestComponent>`
 })
 export class TestComponent extends FASTElement {
   @IMediator mediator!: IMediator;
-  @IBus test!: IBus;
+  @observable projects: Array<any> = [];
   @attr greeting: string = "";
-  sendMessage() {
-    console.log("SENDING MESSAGE");
-    console.log(this.mediator);
-    console.log(this.test);
-    this.mediator.publish("ProjectsRequest", {});
-    //ii(new Test());
-  }
-  greetingChanged() {
-    console.log("CHANGED", this.greeting);
+  async sendMessage() {
+    this.projects = await this.mediator.publish(LIST_PROJECTS, {});
   }
 }

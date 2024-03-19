@@ -7,10 +7,10 @@ export default class HostBus implements IBus {
     this._webView = webView;
   }
 
-  registerHandler(handler: (message: any) => void) {
+  receiveCallback(handler: (message: any) => void, thisArg: any) {
     this._webView.onDidReceiveMessage((message) => {
-      handler(message);
-    });
+      handler.call(thisArg, message);
+    }, thisArg);
   }
 
   send(message: any) {
