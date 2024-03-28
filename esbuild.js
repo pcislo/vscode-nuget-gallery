@@ -4,6 +4,14 @@ const baseConfig = {
   bundle: true,
   minify: process.env.NODE_ENV === "production",
   sourcemap: process.env.NODE_ENV !== "production",
+  loader: {
+    ".png": "dataurl",
+    ".woff": "dataurl",
+    ".woff2": "dataurl",
+    ".eot": "dataurl",
+    ".ttf": "dataurl",
+    ".svg": "dataurl",
+  },
 };
 
 const extensionConfig = {

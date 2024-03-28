@@ -1,4 +1,4 @@
-import { IBus } from "@/common/messaging/types";
+import { IBus } from "@/common/messaging/core/types";
 import { Webview } from "vscode";
 
 export default class HostBus implements IBus {
@@ -7,13 +7,13 @@ export default class HostBus implements IBus {
     this._webView = webView;
   }
 
-  receiveCallback(handler: (message: any) => void, thisArg: any) {
+  ReceiveCallback(handler: (message: any) => void, thisArg: any) {
     this._webView.onDidReceiveMessage((message) => {
       handler.call(thisArg, message);
     }, thisArg);
   }
 
-  send(message: any) {
+  Send(message: any) {
     this._webView.postMessage(message);
   }
 }

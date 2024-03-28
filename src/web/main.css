@@ -1,0 +1,11 @@
+html,
+body {
+  height: 100%;
+  padding: 0px;
+}
+
+@font-face {
+  font-family: "codicon";
+  font-display: block;
+  src: url("./assets/codicon.ttf") format("truetype");
+}

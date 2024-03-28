@@ -1,20 +1,25 @@
 import * as vscode from "vscode";
 import HostBus from "./messaging/host-bus";
 import nonce from "@/common/nonce";
-import Mediator from "@/common/messaging/mediator";
+import Mediator from "@/common/messaging/core/mediator";
 import { IMediator } from "@/web/registrations";
-import { IBus } from "@/common/messaging/types";
-import { LIST_PROJECTS } from "@/common/messaging/commands";
-import { ListProjects } from "./handlers/list-projects";
+import { IBus } from "@/common/messaging/core/types";
+import { GET_PACKAGES, GET_PROJECTS } from "@/common/messaging/core/commands";
+import { GetProjects } from "./handlers/get-projects";
+import { GetPackages } from "./handlers/get-packages";
 
 export function activate(context: vscode.ExtensionContext) {
   const provider = new NugetViewProvider(context.extensionUri);
-  let disposable = vscode.window.registerWebviewViewProvider(
-    "nuget.gallery.view",
-    provider
+  context.subscriptions.push(
+    vscode.window.registerWebviewViewProvider("nuget.gallery.view", provider, {
+      webviewOptions: {
+        retainContextWhenHidden: true,
+      },
+    })
   );
-
-  context.subscriptions.push(disposable);
+  context.subscriptions.push(
+    vscode.commands.registerCommand("nuget-gallery.openSettings", () => {})
+  );
 }
 
 class NugetViewProvider implements vscode.WebviewViewProvider {
@@ -28,10 +33,15 @@ class NugetViewProvider implements vscode.WebviewViewProvider {
     let hostBus: IBus = new HostBus(webviewView.webview);
     let mediator: IMediator = new Mediator(hostBus);
 
-    mediator.addHandler(LIST_PROJECTS, new ListProjects());
+    mediator
+      .AddHandler(GET_PROJECTS, new GetProjects())
+      .AddHandler(GET_PACKAGES, new GetPackages());
 
-    const webSrc = webviewView.webview.asWebviewUri(
+    const webJsSrc = webviewView.webview.asWebviewUri(
       vscode.Uri.joinPath(this._extensionUri, ...["dist", "web.js"])
+    );
+    const webCssSrc = webviewView.webview.asWebviewUri(
+      vscode.Uri.joinPath(this._extensionUri, ...["dist", "web.css"])
     );
 
     const nonceValue = nonce();
@@ -39,14 +49,15 @@ class NugetViewProvider implements vscode.WebviewViewProvider {
 	  <!DOCTYPE html>
 	  <html lang="en">
 		<head>
-		  <meta charset="UTF-8">
-		  <meta name="viewport" content="width=device-width,initial-scale=1.0">
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1.0">
       <meta http-equiv="Content-Security-Policy" content="script-src 'nonce-${nonceValue}';">
+      <link rel="stylesheet" type="text/css" href="${webCssSrc}"/>
 		  <title>NuGet Gallery</title>
 		</head>
 		<body>
 		  <vscode-nuget-gallery></vscode-nuget-gallery>
-		  <script type="module" nonce="${nonceValue}" src="${webSrc}"></script>
+		  <script type="module" nonce="${nonceValue}" src="${webJsSrc}"></script>
 		</body>
 	  </html>
 	`;
