@@ -9,11 +9,13 @@ import {
   vsCodePanels,
   vsCodePanelView,
   vsCodePanelTab,
+  vsCodeProgressRing,
 } from "@vscode/webview-ui-toolkit";
 
 import { FASTElement, customElement, attr, html, css } from "@microsoft/fast-element";
 
 import { PackagesView } from "./components/packages-view";
+import { PackageRow } from "./components/package-row";
 
 import "./main.css";
 
@@ -27,7 +29,9 @@ provideVSCodeDesignSystem().register(
   vsCodePanelTab(),
   vsCodeDropdown(),
   vsCodeOption(),
-  PackagesView
+  vsCodeProgressRing(),
+  PackagesView,
+  PackageRow
 );
 
 const template = html<VSCodeNuGetGallery>` <packages-view></packages-view> `;

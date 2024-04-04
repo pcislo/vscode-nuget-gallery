@@ -4,6 +4,10 @@ body {
   padding: 0px;
 }
 
+body {
+  padding: 0 0 0 20px;
+}
+
 @font-face {
   font-family: "codicon";
   font-display: block;
