@@ -65,14 +65,33 @@ const template = html<PackagesView>`
         )}
       </div>
     </div>
+
     <div class="col" id="projects">
-      ${(x) => x.selectedPackage?.Name}
-      <div class="projects-container">
-        ${repeat(
-          (x) => x.projects,
-          html<Project>` <project-row :project=${(x) => x}> </project-row> `
-        )}
-      </div>
+      ${when(
+        (x) => x.selectedPackage != null,
+        html<PackagesView>`
+          <div class="package-info">
+            <span class="package-title">${(x) => x.selectedPackage?.Name}</span>
+            <div class="version-selector">
+              <vscode-dropdown>
+                ${repeat(
+                  (x) => x.selectedPackage!.Versions,
+                  html<string>` <vscode-option>${(x) => x}</vscode-option> `
+                )}
+              </vscode-dropdown>
+              <vscode-button appearance="icon" @click=${(x) => x.LoadProjects()}>
+                <span class="codicon codicon-refresh"></span>
+              </vscode-button>
+            </div>
+          </div>
+          <div class="projects-container">
+            ${repeat(
+              (x) => x.projects,
+              html<Project>` <project-row :project=${(x) => x}> </project-row> `
+            )}
+          </div>
+        `
+      )}
     </div>
     <div></div>
   </div>
@@ -151,6 +170,28 @@ const styles = css`
 
     #projects {
       overflow-y: auto;
+
+      .package-info {
+        padding: 3px;
+        margin-left: 2px;
+        margin-right: 3px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+
+        .package-title {
+          font-size: 14px;
+          font-weight: bold;
+          overflow: hidden;
+          text-overflow: ellipsis;
+        }
+
+        .version-selector {
+          text-wrap: nowrap;
+          min-width: 128px;
+        }
+      }
     }
   }
 `;
@@ -184,7 +225,7 @@ export class PackagesView extends FASTElement {
     let projects: HTMLElement = this.shadowRoot?.getElementById("projects")!;
 
     this.splitter = Split([packages, projects], {
-      sizes: [75, 25],
+      sizes: [60, 40],
       gutterSize: 4,
       gutter: (index: number, direction) => {
         const gutter = document.createElement("div");
@@ -267,6 +308,7 @@ export class PackagesView extends FASTElement {
   }
 
   async LoadProjects() {
+    this.projects = [];
     let result = await this.mediator.PublishAsync<GetProjectsRequest, GetProjectsResponse>(
       GET_PROJECTS,
       {}

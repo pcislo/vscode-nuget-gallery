@@ -23,7 +23,7 @@ export class PackageViewModel {
     this.TotalDownloads = model.TotalDownloads;
     this.Verified = model.Verified;
     this.Version = model.Version;
-    this.Versions = model.Versions;
+    this.Versions = model.Versions.reverse();
   }
 
   get Authors() {
