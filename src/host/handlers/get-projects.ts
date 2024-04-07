@@ -11,14 +11,25 @@ export class GetProjects implements IRequestHandler<GetProjectsRequest, GetProje
       "**/*.{csproj,fsproj,vbproj}",
       "**/node_modules/**"
     );
+
     let projects: Array<Project> = Array();
     projectFiles
       .map((x) => x.fsPath)
       .forEach((x) => {
-        let project = this.parseProject(x);
-        projects.push(project);
+        try {
+          let project = this.parseProject(x);
+          projects.push(project);
+        } catch (e) {
+          console.error(e);
+        }
       });
-    let sortedProjects = projects.sort((a, b) => (a.Name < b.Name ? -1 : a.Name > b.Name ? 1 : 0));
+    let compareName = (nameA: string, nameB: string) => {
+      return nameA < nameB ? -1 : nameA > nameB ? 1 : 0;
+    };
+    let sortedProjects = projects.sort((a, b) =>
+      compareName(a.Name?.toLowerCase(), b.Name?.toLowerCase())
+    );
+
     let response: GetProjectsResponse = {
       Projects: sortedProjects,
     };
@@ -28,6 +39,8 @@ export class GetProjects implements IRequestHandler<GetProjectsRequest, GetProje
   parseProject(projectPath: string): Project {
     let projectContent = fs.readFileSync(projectPath, "utf8");
     let document = new DOMParser().parseFromString(projectContent);
+    if (document == undefined) throw `${projectPath} has invalid content`;
+
     let packagesReferences = xpath.select("//ItemGroup/PackageReference", document) as Node[];
     let project: Project = {
       Path: projectPath,

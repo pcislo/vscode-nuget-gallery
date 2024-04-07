@@ -10,12 +10,13 @@ import {
 import { PackageViewModel } from "../types";
 
 const template = html<PackageRow>`
-<div class=${(x) => "package-row" + (x.package.Selected ? " package-row-selected" : "")}>
+<div class="package-row ${(x) => (x.package.Selected ? "package-row-selected" : "")}">
     <div class="package-title">
     <img class="icon" src=${(x) => x.IconUrl} @error="${(x) =>
   (x.iconUrl = "https://nuget.org/Content/gallery/img/default-package-icon.svg")}"></img> 
-    <div class="name">${(x) => x.package.Name}</div> 
-    <div class="authors">${(x) => x.package.Authors}</div>
+    <div class="title">
+    <span class="name">${(x) => x.package.Name}</span>
+    <span class="authors">${(x) => x.package.Authors}</span></div> 
     </div>
     <div class="package-version"> ${(x) => x.package.Version} </div>
 </div>
@@ -42,7 +43,14 @@ const styles = css`
       display: flex;
       gap: 4px;
       align-items: center;
+      flex: 1;
+      overflow: hidden;
+      .title {
+        overflow: hidden;
+        white-space: nowrap;
 
+        text-overflow: ellipsis;
+      }
       .icon {
         width: 18px;
         height: 18px;
@@ -52,15 +60,12 @@ const styles = css`
       }
 
       .authors {
-        max-width: 180px;
-        overflow: hidden;
-        white-space: nowrap;
-        text-overflow: ellipsis;
       }
     }
 
     .package-version {
       font-weight: bold;
+      white-space: nowrap;
     }
   }
 `;

@@ -16,6 +16,7 @@ import { FASTElement, customElement, attr, html, css } from "@microsoft/fast-ele
 
 import { PackagesView } from "./components/packages-view";
 import { PackageRow } from "./components/package-row";
+import { ProjectRow } from "./components/project-row";
 
 import "./main.css";
 
@@ -31,7 +32,8 @@ provideVSCodeDesignSystem().register(
   vsCodeOption(),
   vsCodeProgressRing(),
   PackagesView,
-  PackageRow
+  PackageRow,
+  ProjectRow
 );
 
 const template = html<VSCodeNuGetGallery>` <packages-view></packages-view> `;

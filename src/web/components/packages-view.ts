@@ -12,6 +12,7 @@ import {
 
 import Split from "split.js";
 import lodash from "lodash";
+import hash from "object-hash";
 import { IMediator } from "@/web/registrations";
 import { GET_PACKAGES, GET_PROJECTS } from "@/common/messaging/core/commands";
 import codicon from "@/web/styles/codicon.css";
@@ -44,30 +45,34 @@ const template = html<PackagesView>`
           >
         </div>
       </div>
-      ${when(
-        (x) => x.packagesLoading,
-        html<PackagesView>` <vscode-progress-ring class="loader"></vscode-progress-ring> `,
-        html<PackagesView>`
-          <div class="packages-container">
-            ${repeat(
-              (x) => x.packages,
-              html<PackageViewModel>`
-                <package-row
-                  :package=${(x) => x}
-                  @click=${(x, c: ExecutionContext<PackagesView, any>) => c.parent.SelectPackage(x)}
-                >
-                </package-row>
-              `
-            )}
-          </div>
-        `
-      )}
+      <div
+        class="packages-container"
+        @scroll=${(x, e) => x.PackagesScrollEvent(e.event.target as HTMLElement)}
+      >
+        ${repeat(
+          (x) => x.packages,
+          html<PackageViewModel>`
+            <package-row
+              :package=${(x) => x}
+              @click=${(x, c: ExecutionContext<PackagesView, any>) => c.parent.SelectPackage(x)}
+            >
+            </package-row>
+          `
+        )}
+        ${when(
+          (x) => !x.noMorePackages,
+          html<PackagesView>`<vscode-progress-ring class="loader"></vscode-progress-ring>`
+        )}
+      </div>
     </div>
     <div class="col" id="projects">
       ${(x) => x.selectedPackage?.Name}
-      <ul>
-        ${repeat((x) => x.projects, html<Project>` <li>${(x) => x.Name}</li> `)}
-      </ul>
+      <div class="projects-container">
+        ${repeat(
+          (x) => x.projects,
+          html<Project>` <project-row :project=${(x) => x}> </project-row> `
+        )}
+      </div>
     </div>
     <div></div>
   </div>
@@ -130,9 +135,16 @@ const styles = css`
       }
       .packages-container {
         overflow-y: auto;
+        display: flex;
+        flex-direction: column;
+        flex: 1;
 
         .package {
           margin-bottom: 3px;
+        }
+
+        .loader {
+          margin: 10px 0px;
         }
       }
     }
@@ -143,6 +155,9 @@ const styles = css`
   }
 `;
 
+const PACKAGE_FETCH_TAKE = 30;
+const PACKAGE_CONTAINER_SCROLL_MARGIN = 196;
+
 @customElement({
   name: "packages-view",
   template,
@@ -151,13 +166,16 @@ const styles = css`
 export class PackagesView extends FASTElement {
   delayedPackagesLoader = lodash.debounce(() => this.LoadPackages(), 500);
   splitter: Split.Instance | null = null;
+  packagesPage: number = 0;
+  packagesLoadingInProgress: boolean = false;
+  currentLoadPackageHash: string = "";
   @IMediator mediator!: IMediator;
   @observable projects: Array<any> = [];
   @observable selectedPackage: PackageViewModel | null = null;
   @observable packages: Array<PackageViewModel> = [];
   @observable prerelase: boolean = true;
   @observable filterQuery: string = "";
-  @observable packagesLoading: boolean = true;
+  @observable noMorePackages: boolean = false;
 
   connectedCallback(): void {
     super.connectedCallback();
@@ -202,23 +220,52 @@ export class PackagesView extends FASTElement {
     this.selectedPackage = selectedPackage;
   }
 
-  async LoadPackages() {
-    this.selectedPackage = null;
-    this.packagesLoading = true;
-    let result = await this.mediator.PublishAsync<GetPackagesRequest, GetPackagesResponse>(
-      GET_PACKAGES,
-      {
+  PackagesScrollEvent(target: HTMLElement) {
+    if (this.packagesLoadingInProgress) return;
+    let bottom = target.scrollTop + target.getBoundingClientRect().height;
+    if (
+      target.scrollTop + target.getBoundingClientRect().height <
+      target.scrollHeight - PACKAGE_CONTAINER_SCROLL_MARGIN
+    )
+      this.LoadPackages(true);
+  }
+
+  async LoadPackages(append: boolean = false) {
+    let _getLoadPackageRequest = () => {
+      return {
         Url: "https://api.nuget.org/v3/index.json",
         Filter: this.filterQuery,
         Prerelease: this.prerelase,
-        Skip: 0,
-        Take: 30,
-      }
+        Skip: this.packagesPage * PACKAGE_FETCH_TAKE,
+        Take: PACKAGE_FETCH_TAKE,
+      };
+    };
+
+    this.packagesLoadingInProgress = true;
+    if (append == false) {
+      this.packagesPage = 0;
+      this.selectedPackage = null;
+      this.packages = [];
+    }
+    this.noMorePackages = false;
+
+    let requestObject = _getLoadPackageRequest();
+    this.currentLoadPackageHash = hash(requestObject);
+
+    let result = await this.mediator.PublishAsync<GetPackagesRequest, GetPackagesResponse>(
+      GET_PACKAGES,
+      requestObject
     );
 
-    this.packages = result.Packages.map((x) => new PackageViewModel(x));
-    this.packagesLoading = false;
+    if (this.currentLoadPackageHash != hash(_getLoadPackageRequest())) return;
+
+    let packagesViewModels = result.Packages.map((x) => new PackageViewModel(x));
+    if (packagesViewModels.length == 0) this.noMorePackages = true;
+    this.packages.push(...packagesViewModels);
+    this.packagesPage++;
+    this.packagesLoadingInProgress = false;
   }
+
   async LoadProjects() {
     let result = await this.mediator.PublishAsync<GetProjectsRequest, GetProjectsResponse>(
       GET_PROJECTS,
