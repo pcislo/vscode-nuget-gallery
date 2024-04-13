@@ -73,7 +73,10 @@ const template = html<PackagesView>`
           <div class="package-info">
             <span class="package-title">${(x) => x.selectedPackage?.Name}</span>
             <div class="version-selector">
-              <vscode-dropdown>
+              <vscode-dropdown
+                :value=${(x) => x.selectedVersion}
+                @change=${(x, c) => (x.selectedVersion = (c.event.target as any).value)}
+              >
                 ${repeat(
                   (x) => x.selectedPackage!.Versions,
                   html<string>` <vscode-option>${(x) => x}</vscode-option> `
@@ -87,7 +90,16 @@ const template = html<PackagesView>`
           <div class="projects-container">
             ${repeat(
               (x) => x.projects,
-              html<Project>` <project-row :project=${(x) => x}> </project-row> `
+              html<Project>`
+                <project-row
+                  :project=${(x) => x}
+                  :packageId=${(x, c: ExecutionContext<PackagesView, any>) =>
+                    c.parent.selectedPackage?.Name}
+                  :packageVersion=${(x, c: ExecutionContext<PackagesView, any>) =>
+                    c.parent.selectedVersion}
+                >
+                </project-row>
+              `
             )}
           </div>
         `
@@ -169,7 +181,8 @@ const styles = css`
     }
 
     #projects {
-      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
 
       .package-info {
         padding: 3px;
@@ -192,6 +205,9 @@ const styles = css`
           min-width: 128px;
         }
       }
+      .projects-container {
+        overflow-y: auto;
+      }
     }
   }
 `;
@@ -212,6 +228,7 @@ export class PackagesView extends FASTElement {
   currentLoadPackageHash: string = "";
   @IMediator mediator!: IMediator;
   @observable projects: Array<any> = [];
+  @observable selectedVersion: string = "";
   @observable selectedPackage: PackageViewModel | null = null;
   @observable packages: Array<PackageViewModel> = [];
   @observable prerelase: boolean = true;
@@ -259,6 +276,7 @@ export class PackagesView extends FASTElement {
     this.packages.filter((x) => x.Selected).forEach((x) => (x.Selected = false));
     selectedPackage.Selected = true;
     this.selectedPackage = selectedPackage;
+    this.selectedVersion = this.selectedPackage.Version;
   }
 
   PackagesScrollEvent(target: HTMLElement) {

@@ -28,7 +28,7 @@ export default class NuGetApi {
       },
     });
     const mappedData: Response["data"] = result.data.data.map((item: any) => ({
-      id: item["@id"] || "",
+      Id: item["@id"] || "",
       Name: item.id || "",
       Authors: item.authors || [],
       Description: item.description || "",
