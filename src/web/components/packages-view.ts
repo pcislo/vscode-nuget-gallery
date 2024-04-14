@@ -17,7 +17,7 @@ import { IMediator } from "@/web/registrations";
 import { GET_PACKAGES, GET_PROJECTS } from "@/common/messaging/core/commands";
 import codicon from "@/web/styles/codicon.css";
 import { scrollableBase } from "@/web/styles/base.css";
-import { PackageViewModel } from "../types";
+import { PackageViewModel, ProjectViewModel } from "../types";
 
 const template = html<PackagesView>`
   <div class="container">
@@ -90,7 +90,7 @@ const template = html<PackagesView>`
           <div class="projects-container">
             ${repeat(
               (x) => x.projects,
-              html<Project>`
+              html<ProjectViewModel>`
                 <project-row
                   :project=${(x) => x}
                   :packageId=${(x, c: ExecutionContext<PackagesView, any>) =>
@@ -227,7 +227,7 @@ export class PackagesView extends FASTElement {
   packagesLoadingInProgress: boolean = false;
   currentLoadPackageHash: string = "";
   @IMediator mediator!: IMediator;
-  @observable projects: Array<any> = [];
+  @observable projects: Array<ProjectViewModel> = [];
   @observable selectedVersion: string = "";
   @observable selectedPackage: PackageViewModel | null = null;
   @observable packages: Array<PackageViewModel> = [];
@@ -281,7 +281,6 @@ export class PackagesView extends FASTElement {
 
   PackagesScrollEvent(target: HTMLElement) {
     if (this.packagesLoadingInProgress) return;
-    let bottom = target.scrollTop + target.getBoundingClientRect().height;
     if (
       target.scrollTop + target.getBoundingClientRect().height <
       target.scrollHeight - PACKAGE_CONTAINER_SCROLL_MARGIN
@@ -332,6 +331,6 @@ export class PackagesView extends FASTElement {
       {}
     );
 
-    this.projects = result.Projects;
+    this.projects = result.Projects.map((x) => new ProjectViewModel(x));
   }
 }

@@ -1,9 +1,7 @@
 import * as vscode from "vscode";
 import { IRequestHandler } from "../../common/messaging/core/types";
-import fs from "fs";
-import { DOMParser } from "xmldom";
-import xpath from "xpath";
-import * as path from "path";
+import ProjectParser from "../utilities/project-parser";
+
 
 export class GetProjects implements IRequestHandler<GetProjectsRequest, GetProjectsResponse> {
   async HandleAsync(request: GetProjectsRequest): Promise<GetProjectsResponse> {
@@ -17,7 +15,7 @@ export class GetProjects implements IRequestHandler<GetProjectsRequest, GetProje
       .map((x) => x.fsPath)
       .forEach((x) => {
         try {
-          let project = this.parseProject(x);
+          let project = ProjectParser.Parse(x);
           projects.push(project);
         } catch (e) {
           console.error(e);
@@ -34,37 +32,5 @@ export class GetProjects implements IRequestHandler<GetProjectsRequest, GetProje
       Projects: sortedProjects,
     };
     return response;
-  }
-
-  parseProject(projectPath: string): Project {
-    let projectContent = fs.readFileSync(projectPath, "utf8");
-    let document = new DOMParser().parseFromString(projectContent);
-    if (document == undefined) throw `${projectPath} has invalid content`;
-
-    let packagesReferences = xpath.select("//ItemGroup/PackageReference", document) as Node[];
-    let project: Project = {
-      Path: projectPath,
-      Name: path.basename(projectPath),
-      Packages: Array(),
-    };
-
-    (packagesReferences || []).forEach((p: any) => {
-      let version = p.attributes?.getNamedItem("Version");
-      if (version) {
-        version = version.value;
-      } else {
-        version = xpath.select("string(Version)", p);
-        if (!version) {
-          version = null;
-        }
-      }
-      let projectPackage: ProjectPackage = {
-        Id: p.attributes?.getNamedItem("Include").value,
-        Version: version,
-      };
-      project.Packages.push(projectPackage);
-    });
-
-    return project;
   }
 }

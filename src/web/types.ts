@@ -30,3 +30,25 @@ export class PackageViewModel {
     return "@" + this._authors.join(",");
   }
 }
+
+export class ProjectViewModel {
+  Name: string;
+  Path: string;
+  @observable Packages: ProjectPackageViewModel[];
+
+  constructor(model: Project) {
+    this.Name = model.Name;
+    this.Path = model.Path;
+    this.Packages = model.Packages.map((x) => new ProjectPackageViewModel(x));
+  }
+}
+
+export class ProjectPackageViewModel {
+  Id: string;
+  Version: string;
+
+  constructor(model: ProjectPackage) {
+    this.Id = model.Id;
+    this.Version = model.Version;
+  }
+}

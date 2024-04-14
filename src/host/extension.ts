@@ -4,9 +4,10 @@ import nonce from "@/common/nonce";
 import Mediator from "@/common/messaging/core/mediator";
 import { IMediator } from "@/web/registrations";
 import { IBus } from "@/common/messaging/core/types";
-import { GET_PACKAGES, GET_PROJECTS } from "@/common/messaging/core/commands";
+import { GET_PACKAGES, GET_PROJECTS, UPDATE_PROJECT } from "@/common/messaging/core/commands";
 import { GetProjects } from "./handlers/get-projects";
 import { GetPackages } from "./handlers/get-packages";
+import UpdateProject from "./handlers/update-project";
 
 export function activate(context: vscode.ExtensionContext) {
   const provider = new NugetViewProvider(context.extensionUri);
@@ -35,7 +36,8 @@ class NugetViewProvider implements vscode.WebviewViewProvider {
 
     mediator
       .AddHandler(GET_PROJECTS, new GetProjects())
-      .AddHandler(GET_PACKAGES, new GetPackages());
+      .AddHandler(GET_PACKAGES, new GetPackages())
+      .AddHandler(UPDATE_PROJECT, new UpdateProject());
 
     const webJsSrc = webviewView.webview.asWebviewUri(
       vscode.Uri.joinPath(this._extensionUri, ...["dist", "web.js"])
