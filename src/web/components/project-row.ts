@@ -13,6 +13,7 @@ import codicon from "@/web/styles/codicon.css";
 import { IMediator } from "../registrations";
 import { UPDATE_PROJECT } from "@/common/messaging/core/commands";
 import { ProjectPackageViewModel, ProjectViewModel } from "../types";
+import ObservableDictionary from "../utilities/ObservableDictionary";
 
 const template = html<ProjectRow>`
   <div class="project-row">
@@ -21,7 +22,7 @@ const template = html<ProjectRow>`
     </div>
     <div class="project-actions">
       ${when(
-        (x) => x.loading,
+        (x) => x.loaders.Get(x.packageId) === true,
         html<ProjectRow>`<vscode-progress-ring class="loader"></vscode-progress-ring>`,
         html<ProjectRow>`
           <span class="version">${(x) => x.ProjectPackage?.Version}</span>
@@ -110,7 +111,7 @@ export class ProjectRow extends FASTElement {
   @attr project!: ProjectViewModel;
   @attr packageId!: string;
   @attr packageVersion!: string;
-  @observable loading: boolean = false;
+  @observable loaders: ObservableDictionary<boolean> = new ObservableDictionary<boolean>();
 
   @volatile
   get ProjectPackage() {
@@ -125,12 +126,12 @@ export class ProjectRow extends FASTElement {
       PackageId: this.packageId,
       Version: this.packageVersion,
     };
-    this.loading = true;
+    this.loaders.Add(request.PackageId, true);
     let result = await this.mediator.PublishAsync<UpdateProjectRequest, UpdateProjectResponse>(
       UPDATE_PROJECT,
       request
     );
     this.project.Packages = result.Project.Packages.map((x) => new ProjectPackageViewModel(x));
-    this.loading = false;
+    this.loaders.Remove(request.PackageId);
   }
 }
