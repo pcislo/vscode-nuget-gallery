@@ -1,0 +1,3 @@
+type ShowSettingsRequest = {};
+
+type ShowSettingsResponse = {};

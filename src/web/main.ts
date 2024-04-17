@@ -1,4 +1,4 @@
-import registrations from "./registrations";
+import registrations, { Router } from "./registrations";
 import {
   provideVSCodeDesignSystem,
   vsCodeButton,
@@ -12,11 +12,12 @@ import {
   vsCodeProgressRing,
 } from "@vscode/webview-ui-toolkit";
 
-import { FASTElement, customElement, attr, html, css } from "@microsoft/fast-element";
+import { FASTElement, customElement, html, css, when } from "@microsoft/fast-element";
 
 import { PackagesView } from "./components/packages-view";
 import { PackageRow } from "./components/package-row";
 import { ProjectRow } from "./components/project-row";
+import { SettingsView } from "./components/settings-view";
 
 import "./main.css";
 
@@ -33,10 +34,17 @@ provideVSCodeDesignSystem().register(
   vsCodeProgressRing(),
   PackagesView,
   PackageRow,
-  ProjectRow
+  ProjectRow,
+  SettingsView
 );
 
-const template = html<VSCodeNuGetGallery>` <packages-view></packages-view> `;
+const template = html<VSCodeNuGetGallery>`
+  ${when(
+    (x) => x.router.CurrentRoute == "BROWSE",
+    html`<packages-view></packages-view>`,
+    html`<settings-view></settings-view>`
+  )}
+`;
 
 const styles = css``;
 
@@ -45,4 +53,6 @@ const styles = css``;
   template,
   styles,
 })
-export class VSCodeNuGetGallery extends FASTElement {}
+export class VSCodeNuGetGallery extends FASTElement {
+  @Router router!: Router;
+}

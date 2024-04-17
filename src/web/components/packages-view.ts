@@ -105,7 +105,6 @@ const template = html<PackagesView>`
         `
       )}
     </div>
-    <div></div>
   </div>
 `;
 
@@ -113,6 +112,10 @@ const styles = css`
   .container {
     display: flex;
     height: 100%;
+
+    &:focus-visible {
+      outline: unset;
+    }
 
     .col {
       overflow: hidden;

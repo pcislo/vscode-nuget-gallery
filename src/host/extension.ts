@@ -4,10 +4,17 @@ import nonce from "@/common/nonce";
 import Mediator from "@/common/messaging/core/mediator";
 import { IMediator } from "@/web/registrations";
 import { IBus } from "@/common/messaging/core/types";
-import { GET_PACKAGES, GET_PROJECTS, UPDATE_PROJECT } from "@/common/messaging/core/commands";
+import {
+  GET_PACKAGES,
+  GET_PROJECTS,
+  SHOW_SETTINGS,
+  UPDATE_PROJECT,
+} from "@/common/messaging/core/commands";
 import { GetProjects } from "./handlers/get-projects";
 import { GetPackages } from "./handlers/get-packages";
 import UpdateProject from "./handlers/update-project";
+
+let mediator: IMediator;
 
 export function activate(context: vscode.ExtensionContext) {
   const provider = new NugetViewProvider(context.extensionUri);
@@ -19,7 +26,9 @@ export function activate(context: vscode.ExtensionContext) {
     })
   );
   context.subscriptions.push(
-    vscode.commands.registerCommand("nuget-gallery.openSettings", () => {})
+    vscode.commands.registerCommand("nuget-gallery.openSettings", async () => {
+      await mediator?.PublishAsync<ShowSettingsRequest, ShowSettingsResponse>(SHOW_SETTINGS, {});
+    })
   );
 }
 
@@ -32,7 +41,7 @@ class NugetViewProvider implements vscode.WebviewViewProvider {
     token: vscode.CancellationToken
   ): void | Thenable<void> {
     let hostBus: IBus = new HostBus(webviewView.webview);
-    let mediator: IMediator = new Mediator(hostBus);
+    mediator = new Mediator(hostBus);
 
     mediator
       .AddHandler(GET_PROJECTS, new GetProjects())

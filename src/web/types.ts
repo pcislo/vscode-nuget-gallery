@@ -52,3 +52,9 @@ export class ProjectPackageViewModel {
     this.Version = model.Version;
   }
 }
+
+export class SourceViewModel {
+  @observable Name: string = "";
+  @observable Url: string = "";
+  @observable EditMode: boolean = false;
+}
