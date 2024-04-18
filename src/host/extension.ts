@@ -5,6 +5,7 @@ import Mediator from "@/common/messaging/core/mediator";
 import { IMediator } from "@/web/registrations";
 import { IBus } from "@/common/messaging/core/types";
 import {
+  GET_CONFIGURATION,
   GET_PACKAGES,
   GET_PROJECTS,
   SHOW_SETTINGS,
@@ -13,6 +14,7 @@ import {
 import { GetProjects } from "./handlers/get-projects";
 import { GetPackages } from "./handlers/get-packages";
 import UpdateProject from "./handlers/update-project";
+import GetConfiguration from "./handlers/get-configuration";
 
 let mediator: IMediator;
 
@@ -46,7 +48,8 @@ class NugetViewProvider implements vscode.WebviewViewProvider {
     mediator
       .AddHandler(GET_PROJECTS, new GetProjects())
       .AddHandler(GET_PACKAGES, new GetPackages())
-      .AddHandler(UPDATE_PROJECT, new UpdateProject());
+      .AddHandler(UPDATE_PROJECT, new UpdateProject())
+      .AddHandler(GET_CONFIGURATION, new GetConfiguration());
 
     const webJsSrc = webviewView.webview.asWebviewUri(
       vscode.Uri.joinPath(this._extensionUri, ...["dist", "web.js"])

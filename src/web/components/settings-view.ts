@@ -6,12 +6,15 @@ import {
   observable,
   repeat,
   when,
+  ExecutionContext,
 } from "@microsoft/fast-element";
 
 import codicon from "@/web/styles/codicon.css";
 import { scrollableBase } from "@/web/styles/base.css";
-import { Router } from "../registrations";
+import { Configuration, Router } from "../registrations";
 import { SourceViewModel } from "../types";
+import _ from "lodash";
+import nonce from "@/common/nonce";
 
 const template = html<SettingsView>`
   <div class="container">
@@ -25,7 +28,10 @@ const template = html<SettingsView>`
       <div class="section">
         <div class="title">Credential Provider Folder</div>
         <div class="subtitle">Folder containing CredentialProvider.Microsoft</div>
-        <vscode-text-field class="text-field"></vscode-text-field>
+        <vscode-text-field
+          class="text-field"
+          :value=${(x) => x.credentialProviderFolder}
+        ></vscode-text-field>
       </div>
 
       <div class="section sources-section">
@@ -39,27 +45,64 @@ const template = html<SettingsView>`
                 (x) => x.EditMode,
                 html<SourceViewModel>`
                   <div class="row edit-row">
-                    <vscode-text-field placeholder="Name"></vscode-text-field>
-                    <vscode-text-field placeholder="Url"></vscode-text-field>
+                    <vscode-text-field
+                      placeholder="Name"
+                      :value=${(x) => x.DraftName}
+                      @input=${(x, c) =>
+                        (x.DraftName = (c.event.target! as HTMLInputElement).value)}
+                    ></vscode-text-field>
+                    <vscode-text-field
+                      placeholder="Url"
+                      :value=${(x) => x.DraftUrl}
+                      @input=${(x, c) => (x.DraftUrl = (c.event.target! as HTMLInputElement).value)}
+                    ></vscode-text-field>
                     <div>
-                      <vscode-button> Ok </vscode-button>
-                      <vscode-button appearance="secondary"> Cancel </vscode-button>
+                      <vscode-button
+                        @click=${(x, c: ExecutionContext<SettingsView, any>) => c.parent.SaveRow(x)}
+                      >
+                        Ok
+                      </vscode-button>
+                      <vscode-button
+                        appearance="secondary"
+                        @click=${(x, c: ExecutionContext<SettingsView, any>) =>
+                          c.parent.CancelRow(x)}
+                      >
+                        Cancel
+                      </vscode-button>
                     </div>
                   </div>
                 `,
                 html<SourceViewModel>`
                   <div class="row data-row">
-                    <span class="label">asdasd</span>
-                    <span class="label">aszxcasd</span>
+                    <span class="label">${(x) => x.Name}</span>
+                    <span class="label">${(x) => x.Url}</span>
+                    <div class="actions">
+                      <vscode-button
+                        appearance="icon"
+                        @click=${(x, c: ExecutionContext<SettingsView, any>) => c.parent.EditRow(x)}
+                      >
+                        <span class="codicon codicon-edit"></span>
+                      </vscode-button>
+                      <vscode-button
+                        appearance="icon"
+                        @click=${(x, c: ExecutionContext<SettingsView, any>) =>
+                          c.parent.RemoveRow(x)}
+                      >
+                        <span class="codicon codicon-close"></span>
+                      </vscode-button>
+                    </div>
                   </div>
                 `
               )}
             `
           )}
         </div>
-        <vscode-button class="add-source" @click=${(x) => x.AddSourceRow()}>
-          Add source
-        </vscode-button>
+        ${when(
+          (x) => x.newSource == null,
+          html<SettingsView>`<vscode-button class="add-source" @click=${(x) => x.AddSourceRow()}>
+            Add source
+          </vscode-button>`
+        )}
       </div>
     </div>
   </div>
@@ -112,11 +155,19 @@ const styles = css`
             grid-template-columns: 30% 70%;
             grid-column-gap: 10px;
             &.data-row {
+              .actions {
+                display: none;
+              }
               .label {
                 padding: 4px 2px;
               }
               &:hover {
+                grid-template-columns: 30% auto 50px;
                 background-color: var(--vscode-list-hoverBackground);
+                .actions {
+                  display: flex;
+                  gap: 2px;
+                }
               }
             }
             &.edit-row {
@@ -139,12 +190,39 @@ const styles = css`
 })
 export class SettingsView extends FASTElement {
   @Router router!: Router;
+  @Configuration configuration!: Configuration;
+  @observable credentialProviderFolder: string = "";
+  @observable newSource: SourceViewModel | null = null;
   @observable sources: Array<SourceViewModel> = [];
 
+  connectedCallback(): void {
+    super.connectedCallback();
+    let config = this.configuration.Configuration;
+    this.credentialProviderFolder = config?.CredentialProviderFolder ?? "";
+    this.sources = config?.Sources.map((x) => new SourceViewModel(x)) ?? [];
+  }
+
   AddSourceRow() {
-    this.sources.forEach((x) => (x.EditMode = false));
-    let newSource = new SourceViewModel();
-    newSource.EditMode = true;
-    this.sources.push(newSource);
+    this.sources.filter((x) => x.EditMode == true).forEach((x) => x.Cancel());
+    this.newSource = new SourceViewModel();
+    this.newSource.Edit();
+    this.sources.push(this.newSource);
+  }
+  EditRow(source: SourceViewModel) {
+    this.sources.filter((x) => x.EditMode == true).forEach((x) => x.Cancel());
+    source.Edit();
+  }
+  RemoveRow(source: SourceViewModel) {
+    this.sources.splice(this.sources.indexOf(source), 1);
+  }
+  SaveRow(source: SourceViewModel) {
+    if (this.newSource?.Id == source.Id) this.newSource = null;
+    source.Save();
+    if (source.Name == "" && source.Url == "") this.RemoveRow(source);
+  }
+  CancelRow(source: SourceViewModel) {
+    if (this.newSource?.Id == source.Id) this.newSource = null;
+    if (source.Name == "" && source.Url == "") this.RemoveRow(source);
+    else source.Cancel();
   }
 }

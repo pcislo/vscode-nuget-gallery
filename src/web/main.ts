@@ -1,4 +1,4 @@
-import registrations, { Router } from "./registrations";
+import registrations, { Configuration, Router } from "./registrations";
 import {
   provideVSCodeDesignSystem,
   vsCodeButton,
@@ -40,9 +40,14 @@ provideVSCodeDesignSystem().register(
 
 const template = html<VSCodeNuGetGallery>`
   ${when(
-    (x) => x.router.CurrentRoute == "BROWSE",
-    html`<packages-view></packages-view>`,
-    html`<settings-view></settings-view>`
+    (x) => x.configuration.Configuration != null,
+    html<VSCodeNuGetGallery>`
+      ${when(
+        (x) => x.router.CurrentRoute == "BROWSE",
+        html`<packages-view></packages-view>`,
+        html`<settings-view></settings-view>`
+      )}
+    `
   )}
 `;
 
@@ -55,4 +60,10 @@ const styles = css``;
 })
 export class VSCodeNuGetGallery extends FASTElement {
   @Router router!: Router;
+  @Configuration configuration!: Configuration;
+
+  connectedCallback(): void {
+    super.connectedCallback();
+    this.configuration.Reload();
+  }
 }

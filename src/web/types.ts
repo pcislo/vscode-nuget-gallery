@@ -1,3 +1,4 @@
+import nonce from "@/common/nonce";
 import { observable } from "@microsoft/fast-element";
 
 export class PackageViewModel {
@@ -54,7 +55,31 @@ export class ProjectPackageViewModel {
 }
 
 export class SourceViewModel {
+  Id: number = 0;
   @observable Name: string = "";
   @observable Url: string = "";
+  @observable DraftName: string = "";
+  @observable DraftUrl: string = "";
   @observable EditMode: boolean = false;
+  Editable: boolean = true;
+
+  constructor(model: Source | null = null) {
+    this.Id = nonce();
+    this.Name = model?.Name ?? "";
+    this.Url = model?.Url ?? "";
+  }
+
+  Edit() {
+    this.DraftName = this.Name;
+    this.DraftUrl = this.Url;
+    this.EditMode = true;
+  }
+  Cancel() {
+    this.EditMode = false;
+  }
+  Save() {
+    this.Name = this.DraftName;
+    this.Url = this.DraftUrl;
+    this.EditMode = false;
+  }
 }

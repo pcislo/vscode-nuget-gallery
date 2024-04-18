@@ -21,3 +21,13 @@ type Project = {
   Path: string;
   Packages: Array<ProjectPackage>;
 };
+
+type Source = {
+  Name: string;
+  Url: string;
+};
+
+type Configuration = {
+  CredentialProviderFolder: string;
+  Sources: Array<Source>;
+};
