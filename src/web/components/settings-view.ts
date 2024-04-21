@@ -11,10 +11,10 @@ import {
 
 import codicon from "@/web/styles/codicon.css";
 import { scrollableBase } from "@/web/styles/base.css";
-import { Configuration, Router } from "../registrations";
+import { Configuration, IMediator, Router } from "../registrations";
 import { SourceViewModel } from "../types";
-import _ from "lodash";
-import nonce from "@/common/nonce";
+import lodash from "lodash";
+import { UPDATE_CONFIGURATION } from "@/common/messaging/core/commands";
 
 const template = html<SettingsView>`
   <div class="container">
@@ -31,6 +31,10 @@ const template = html<SettingsView>`
         <vscode-text-field
           class="text-field"
           :value=${(x) => x.credentialProviderFolder}
+          @input=${(x, c) => {
+            (x.credentialProviderFolder = (c.event.target! as HTMLInputElement).value),
+              x.delayedCredentialProviderUpdate();
+          }}
         ></vscode-text-field>
       </div>
 
@@ -191,6 +195,8 @@ const styles = css`
 export class SettingsView extends FASTElement {
   @Router router!: Router;
   @Configuration configuration!: Configuration;
+  @IMediator mediator!: IMediator;
+  delayedCredentialProviderUpdate = lodash.debounce(() => this.UpdateConfiguration(), 500);
   @observable credentialProviderFolder: string = "";
   @observable newSource: SourceViewModel | null = null;
   @observable sources: Array<SourceViewModel> = [];
@@ -200,6 +206,18 @@ export class SettingsView extends FASTElement {
     let config = this.configuration.Configuration;
     this.credentialProviderFolder = config?.CredentialProviderFolder ?? "";
     this.sources = config?.Sources.map((x) => new SourceViewModel(x)) ?? [];
+  }
+
+  async UpdateConfiguration() {
+    await this.mediator.PublishAsync<UpdateConfigurationRequest, UpdateConfigurationResponse>(
+      UPDATE_CONFIGURATION,
+      {
+        Configuration: {
+          CredentialProviderFolder: this.credentialProviderFolder,
+          Sources: this.sources.map((x) => x.GetModel()),
+        },
+      }
+    );
   }
 
   AddSourceRow() {
@@ -214,11 +232,13 @@ export class SettingsView extends FASTElement {
   }
   RemoveRow(source: SourceViewModel) {
     this.sources.splice(this.sources.indexOf(source), 1);
+    this.UpdateConfiguration();
   }
   SaveRow(source: SourceViewModel) {
     if (this.newSource?.Id == source.Id) this.newSource = null;
     source.Save();
     if (source.Name == "" && source.Url == "") this.RemoveRow(source);
+    this.UpdateConfiguration();
   }
   CancelRow(source: SourceViewModel) {
     if (this.newSource?.Id == source.Id) this.newSource = null;

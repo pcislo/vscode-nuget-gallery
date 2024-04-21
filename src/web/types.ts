@@ -82,4 +82,11 @@ export class SourceViewModel {
     this.Url = this.DraftUrl;
     this.EditMode = false;
   }
+  GetModel(): Source {
+    let model: Source = {
+      Name: this.Name,
+      Url: this.Url,
+    };
+    return model;
+  }
 }

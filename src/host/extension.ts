@@ -9,12 +9,14 @@ import {
   GET_PACKAGES,
   GET_PROJECTS,
   SHOW_SETTINGS,
+  UPDATE_CONFIGURATION,
   UPDATE_PROJECT,
 } from "@/common/messaging/core/commands";
 import { GetProjects } from "./handlers/get-projects";
 import { GetPackages } from "./handlers/get-packages";
 import UpdateProject from "./handlers/update-project";
 import GetConfiguration from "./handlers/get-configuration";
+import UpdateConfiguration from "./handlers/update-configuration";
 
 let mediator: IMediator;
 
@@ -49,7 +51,8 @@ class NugetViewProvider implements vscode.WebviewViewProvider {
       .AddHandler(GET_PROJECTS, new GetProjects())
       .AddHandler(GET_PACKAGES, new GetPackages())
       .AddHandler(UPDATE_PROJECT, new UpdateProject())
-      .AddHandler(GET_CONFIGURATION, new GetConfiguration());
+      .AddHandler(GET_CONFIGURATION, new GetConfiguration())
+      .AddHandler(UPDATE_CONFIGURATION, new UpdateConfiguration());
 
     const webJsSrc = webviewView.webview.asWebviewUri(
       vscode.Uri.joinPath(this._extensionUri, ...["dist", "web.js"])

@@ -13,7 +13,7 @@ import {
 import Split from "split.js";
 import lodash from "lodash";
 import hash from "object-hash";
-import { IMediator } from "@/web/registrations";
+import { Configuration, IMediator } from "@/web/registrations";
 import { GET_PACKAGES, GET_PROJECTS } from "@/common/messaging/core/commands";
 import codicon from "@/web/styles/codicon.css";
 import { scrollableBase } from "@/web/styles/base.css";
@@ -230,6 +230,7 @@ export class PackagesView extends FASTElement {
   packagesLoadingInProgress: boolean = false;
   currentLoadPackageHash: string = "";
   @IMediator mediator!: IMediator;
+  @Configuration configuration!: Configuration;
   @observable projects: Array<ProjectViewModel> = [];
   @observable selectedVersion: string = "";
   @observable selectedPackage: PackageViewModel | null = null;

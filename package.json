@@ -46,6 +46,28 @@
           "name": "NuGet"
         }
       ]
+    },
+    "configuration": {
+      "title": "NuGet Gallery",
+      "properties": {
+        "NugetGallery.credentialProviderFolder": {
+          "type": "string",
+          "default": "%UserProfile%/.nuget/plugins/netfx/CredentialProvider.Microsoft",
+          "description": "Folder containing CredentialProvider.Microsoft"
+        },
+        "NugetGallery.sources": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "uniqueItems": true,
+          "minItems": 1,
+          "default": [
+            "{\"name\": \"nuget.org\",\"url\": \"https://api.nuget.org/v3/index.json\"}"
+          ],
+          "description": "NuGet sources"
+        }
+      }
     }
   },
   "scripts": {
