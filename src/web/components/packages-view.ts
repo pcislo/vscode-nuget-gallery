@@ -1,7 +1,6 @@
 import {
   FASTElement,
   customElement,
-  attr,
   html,
   css,
   repeat,
@@ -35,8 +34,16 @@ const template = html<PackagesView>`
           </vscode-button>
         </div>
         <div class="search-bar-right">
-          <vscode-dropdown>
-            <vscode-option>nuget.org</vscode-option>
+          <vscode-dropdown
+            :value=${(x) => x.selectedSourceUrl}
+            @change=${(x, c) => x.SelectSource((c.event.target as HTMLInputElement).value)}
+          >
+            ${repeat(
+              (x) => x.configuration.Configuration!.Sources,
+              html<Source>`
+                <vscode-option :value="${(x) => x.Url}">${(x) => x.Name}</vscode-option>
+              `
+            )}
           </vscode-dropdown>
           <vscode-checkbox
             :checked="${(x) => x.prerelase}"
@@ -49,19 +56,28 @@ const template = html<PackagesView>`
         class="packages-container"
         @scroll=${(x, e) => x.PackagesScrollEvent(e.event.target as HTMLElement)}
       >
-        ${repeat(
-          (x) => x.packages,
-          html<PackageViewModel>`
-            <package-row
-              :package=${(x) => x}
-              @click=${(x, c: ExecutionContext<PackagesView, any>) => c.parent.SelectPackage(x)}
-            >
-            </package-row>
-          `
-        )}
         ${when(
-          (x) => !x.noMorePackages,
-          html<PackagesView>`<vscode-progress-ring class="loader"></vscode-progress-ring>`
+          (x) => !x.packagesLoadingError,
+          html<PackagesView>`
+            ${repeat(
+              (x) => x.packages,
+              html<PackageViewModel>`
+                <package-row
+                  :package=${(x) => x}
+                  @click=${(x, c: ExecutionContext<PackagesView, any>) => c.parent.SelectPackage(x)}
+                >
+                </package-row>
+              `
+            )}
+            ${when(
+              (x) => !x.noMorePackages,
+              html<PackagesView>`<vscode-progress-ring class="loader"></vscode-progress-ring>`
+            )}
+          `,
+          html<PackagesView>`<div class="error">
+            <span class="codicon codicon-error"></span> Failed to fetch packages. See 'Webview
+            Developer Tools' for more details
+          </div> `
         )}
       </div>
     </div>
@@ -173,6 +189,15 @@ const styles = css`
         flex-direction: column;
         flex: 1;
 
+        .error {
+          display: flex;
+          gap: 4px;
+          justify-content: center;
+          flex: 1;
+          margin-top: 32px;
+          color: var(--vscode-errorForeground);
+        }
+
         .package {
           margin-bottom: 3px;
         }
@@ -232,12 +257,14 @@ export class PackagesView extends FASTElement {
   @IMediator mediator!: IMediator;
   @Configuration configuration!: Configuration;
   @observable projects: Array<ProjectViewModel> = [];
+  @observable selectedSourceUrl: string = "";
   @observable selectedVersion: string = "";
   @observable selectedPackage: PackageViewModel | null = null;
   @observable packages: Array<PackageViewModel> = [];
   @observable prerelase: boolean = true;
   @observable filterQuery: string = "";
   @observable noMorePackages: boolean = false;
+  @observable packagesLoadingError: boolean = false;
 
   connectedCallback(): void {
     super.connectedCallback();
@@ -257,7 +284,7 @@ export class PackagesView extends FASTElement {
         return gutter;
       },
     });
-
+    this.selectedSourceUrl = this.configuration.Configuration?.Sources[0].Url ?? "";
     this.LoadPackages();
     this.LoadProjects();
   }
@@ -274,6 +301,11 @@ export class PackagesView extends FASTElement {
   FilterInputEvent(target: EventTarget) {
     this.filterQuery = (target as HTMLInputElement).value;
     this.delayedPackagesLoader();
+  }
+
+  SelectSource(url: string) {
+    this.selectedSourceUrl = url;
+    this.LoadPackages(false);
   }
 
   SelectPackage(selectedPackage: PackageViewModel) {
@@ -295,7 +327,7 @@ export class PackagesView extends FASTElement {
   async LoadPackages(append: boolean = false) {
     let _getLoadPackageRequest = () => {
       return {
-        Url: "https://api.nuget.org/v3/index.json",
+        Url: this.selectedSourceUrl,
         Filter: this.filterQuery,
         Prerelease: this.prerelase,
         Skip: this.packagesPage * PACKAGE_FETCH_TAKE,
@@ -303,6 +335,7 @@ export class PackagesView extends FASTElement {
       };
     };
 
+    this.packagesLoadingError = false;
     this.packagesLoadingInProgress = true;
     if (append == false) {
       this.packagesPage = 0;
@@ -318,14 +351,16 @@ export class PackagesView extends FASTElement {
       GET_PACKAGES,
       requestObject
     );
-
     if (this.currentLoadPackageHash != hash(_getLoadPackageRequest())) return;
-
-    let packagesViewModels = result.Packages.map((x) => new PackageViewModel(x));
-    if (packagesViewModels.length == 0) this.noMorePackages = true;
-    this.packages.push(...packagesViewModels);
-    this.packagesPage++;
-    this.packagesLoadingInProgress = false;
+    if (result.IsFailure) {
+      this.packagesLoadingError = true;
+    } else {
+      let packagesViewModels = result.Packages!.map((x) => new PackageViewModel(x));
+      if (packagesViewModels.length == 0) this.noMorePackages = true;
+      this.packages.push(...packagesViewModels);
+      this.packagesPage++;
+      this.packagesLoadingInProgress = false;
+    }
   }
 
   async LoadProjects() {

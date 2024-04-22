@@ -168,9 +168,11 @@ const styles = css`
               &:hover {
                 grid-template-columns: 30% auto 50px;
                 background-color: var(--vscode-list-hoverBackground);
-                .actions {
-                  display: flex;
-                  gap: 2px;
+                &:not(:first-child) {
+                  .actions {
+                    display: flex;
+                    gap: 2px;
+                  }
                 }
               }
             }
@@ -218,6 +220,7 @@ export class SettingsView extends FASTElement {
         },
       }
     );
+    await this.configuration.Reload();
   }
 
   AddSourceRow() {

@@ -7,5 +7,7 @@ type GetPackagesRequest = {
 };
 
 type GetPackagesResponse = {
-  Packages: Array<Package>;
+  IsFailure: boolean;
+  Packages?: Array<Package>;
+  Error?: HttpError;
 };

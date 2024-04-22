@@ -31,3 +31,7 @@ type Configuration = {
   CredentialProviderFolder: string;
   Sources: Array<Source>;
 };
+
+type HttpError = {
+  Message: string;
+};

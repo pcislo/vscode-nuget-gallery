@@ -10,12 +10,12 @@ export default class UpdateConfiguration
       JSON.stringify({ name: x.Name, url: x.Url })
     );
 
-    config.update(
+    await config.update(
       "credentialProviderFolder",
       request.Configuration.CredentialProviderFolder,
       vscode.ConfigurationTarget.Global
     );
-    config.update("sources", sources, vscode.ConfigurationTarget.Global);
+    await config.update("sources", sources, vscode.ConfigurationTarget.Global);
     return {};
   }
 }

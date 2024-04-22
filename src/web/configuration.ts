@@ -22,7 +22,6 @@ export default class ConfigurationService {
     >(GET_CONFIGURATION, {});
 
     this.configuration = response.Configuration;
-    console.log("CONFIG", this.configuration);
     Observable.notify(this, "Configuration");
   }
 }
