@@ -35,3 +35,8 @@ type Configuration = {
 type HttpError = {
   Message: string;
 };
+
+type Credentials = {
+  Username: string;
+  Password: string;
+};

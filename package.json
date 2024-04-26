@@ -52,7 +52,7 @@
       "properties": {
         "NugetGallery.credentialProviderFolder": {
           "type": "string",
-          "default": "%UserProfile%/.nuget/plugins/netfx/CredentialProvider.Microsoft",
+          "default": "{user-profile}/.nuget/plugins/netcore/CredentialProvider.Microsoft",
           "description": "Folder containing CredentialProvider.Microsoft"
         },
         "NugetGallery.sources": {

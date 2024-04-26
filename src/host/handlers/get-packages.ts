@@ -26,11 +26,13 @@ export class GetPackages implements IRequestHandler<GetPackagesRequest, GetPacka
       return result;
     } catch (err) {
       console.error(err, (err as AxiosError)?.response?.data);
-      vscode.window.showErrorMessage(`Failed to fetch packages: ${(err as AxiosError)?.message}`);
+      vscode.window.showErrorMessage(
+        `Failed to fetch packages: ${(err as { message: string })?.message}`
+      );
       let result: GetPackagesResponse = {
         IsFailure: true,
         Error: {
-          Message: (err as AxiosError)?.message,
+          Message: "Failed to fetch packages",
         },
       };
       return result;
@@ -38,7 +40,11 @@ export class GetPackages implements IRequestHandler<GetPackagesRequest, GetPacka
   }
 
   private GetSourceApi(url: string) {
-    if (!(url in this._sourceApiCollection)) this._sourceApiCollection[url] = new NuGetApi(url);
+    let credentialProviderFolder =
+      vscode.workspace.getConfiguration("NugetGallery").get<string>("credentialProviderFolder") ??
+      "";
+    if (!(url in this._sourceApiCollection))
+      this._sourceApiCollection[url] = new NuGetApi(url, credentialProviderFolder);
 
     return this._sourceApiCollection[url];
   }

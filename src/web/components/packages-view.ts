@@ -316,9 +316,9 @@ export class PackagesView extends FASTElement {
   }
 
   PackagesScrollEvent(target: HTMLElement) {
-    if (this.packagesLoadingInProgress) return;
+    if (this.packagesLoadingInProgress || this.noMorePackages) return;
     if (
-      target.scrollTop + target.getBoundingClientRect().height <
+      target.scrollTop + target.getBoundingClientRect().height >
       target.scrollHeight - PACKAGE_CONTAINER_SCROLL_MARGIN
     )
       this.LoadPackages(true);
@@ -356,7 +356,7 @@ export class PackagesView extends FASTElement {
       this.packagesLoadingError = true;
     } else {
       let packagesViewModels = result.Packages!.map((x) => new PackageViewModel(x));
-      if (packagesViewModels.length == 0) this.noMorePackages = true;
+      if (packagesViewModels.length < requestObject.Take) this.noMorePackages = true;
       this.packages.push(...packagesViewModels);
       this.packagesPage++;
       this.packagesLoadingInProgress = false;

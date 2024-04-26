@@ -164,6 +164,9 @@ const styles = css`
               }
               .label {
                 padding: 4px 2px;
+                text-wrap: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis; gall
               }
               &:hover {
                 grid-template-columns: 30% auto 50px;
