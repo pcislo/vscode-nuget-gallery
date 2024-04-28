@@ -20,7 +20,7 @@ const template = html<SettingsView>`
   <div class="container">
     <div class="header">
       <vscode-button appearance="icon" @click=${(x) => x.router.Navigate("BROWSE")}>
-        <div class="return-btn"><span class="codicon codicon-arrow-left"></span>SETTINGS</div>
+        <div class="return-btn"><span class="codicon codicon-arrow-left"></span>BACK</div>
       </vscode-button>
     </div>
 

@@ -104,18 +104,26 @@ const template = html<PackagesView>`
             </div>
           </div>
           <div class="projects-container">
-            ${repeat(
-              (x) => x.projects,
-              html<ProjectViewModel>`
-                <project-row
-                  :project=${(x) => x}
-                  :packageId=${(x, c: ExecutionContext<PackagesView, any>) =>
-                    c.parent.selectedPackage?.Name}
-                  :packageVersion=${(x, c: ExecutionContext<PackagesView, any>) =>
-                    c.parent.selectedVersion}
-                >
-                </project-row>
-              `
+            ${when(
+              (x) => x.projects.length > 0,
+              html<PackagesView>`
+                ${repeat(
+                  (x) => x.projects,
+                  html<ProjectViewModel>`
+                    <project-row
+                      :project=${(x) => x}
+                      :packageId=${(x, c: ExecutionContext<PackagesView, any>) =>
+                        c.parent.selectedPackage?.Name}
+                      :packageVersion=${(x, c: ExecutionContext<PackagesView, any>) =>
+                        c.parent.selectedVersion}
+                    >
+                    </project-row>
+                  `
+                )}
+              `,
+              html<PackagesView>`<div class="no-projects">
+                <span class="codicon codicon-info"></span> No projects found
+              </div>`
             )}
           </div>
         `
@@ -235,6 +243,11 @@ const styles = css`
       }
       .projects-container {
         overflow-y: auto;
+        .no-projects {
+          display: flex;
+          gap: 4px;
+          margin-left: 6px;
+        }
       }
     }
   }

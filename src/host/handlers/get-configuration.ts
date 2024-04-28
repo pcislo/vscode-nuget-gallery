@@ -5,8 +5,14 @@ export default class GetConfiguration
 {
   async HandleAsync(request: GetConfigurationRequest): Promise<GetConfigurationResponse> {
     let config = vscode.workspace.getConfiguration("NugetGallery");
-    await config.update("credentialProviderFolder", undefined, vscode.ConfigurationTarget.Workspace);
-    await config.update("sources", undefined, vscode.ConfigurationTarget.Workspace);
+    try {
+      await config.update(
+        "credentialProviderFolder",
+        undefined,
+        vscode.ConfigurationTarget.Workspace
+      );
+      await config.update("sources", undefined, vscode.ConfigurationTarget.Workspace);
+    } catch {}
     config = vscode.workspace.getConfiguration("NugetGallery");
     let sources =
       config.get<Array<string>>("sources")?.map((x) => {

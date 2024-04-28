@@ -1,6 +1,9 @@
 import axios, { AxiosInstance } from "axios";
 import _ from "lodash";
 const execSync = require("child_process").execSync;
+import * as vscode from "vscode";
+import TaskExecutor from "../utilities/task-executor";
+import os from "os";
 
 type Response = {
   data: Array<Package>;
@@ -17,9 +20,9 @@ export default class NuGetApi {
       return x;
     });
 
-    this.http.interceptors.response.use(null, (x) => {
+    this.http.interceptors.response.use(null, async (x) => {
       if (x.response?.status != 401) return x;
-      let credentials = this.GetCredentials();
+      let credentials = await this.GetCredentials();
       this._token = btoa(`${credentials.Username}:${credentials.Password}`);
       return this.http(x.config);
     });
@@ -68,31 +71,52 @@ export default class NuGetApi {
       );
       if (resource != null) this._searchUrl = resource["@id"];
       else throw { message: "Search url couldn't be found" };
-    } catch (err) {
+    } catch (err: any) {
       console.error(err);
+      if (err.credentialProviderError == true) throw { message: err.message };
       throw { message: "Search url couldn't be found" };
     }
   }
 
-  private GetCredentials(): Credentials {
-    let credentialProviderFolder =
+  private async GetCredentials(): Promise<Credentials> {
+    let credentialProviderFolder = _.trimEnd(
+      _.trimEnd(this._credentialProviderFolder.replace("{user-profile}", os.homedir()), "/"),
+      "\\"
+    );
+
+    let credentialProviderExecutable =
       process.platform === "win32"
-        ? this._credentialProviderFolder.replace("{user-profile}", "%UserProfile%")
-        : this._credentialProviderFolder.replace("{user-profile}", "$HOME");
+        ? credentialProviderFolder + "/CredentialProvider.Microsoft.exe"
+        : credentialProviderFolder + "/CredentialProvider.Microsoft.dll";
 
-    credentialProviderFolder = _.trimEnd(_.trimEnd(credentialProviderFolder, "/"), "\\");
-
-    let command = `dotnet ${credentialProviderFolder}/CredentialProvider.Microsoft.dll`;
-    if (process.platform === "win32") {
-      command = `"${credentialProviderFolder}/CredentialProvider.Microsoft.exe"`;
+    let command = credentialProviderExecutable;
+    if (process.platform !== "win32") {
+      command = `dotnet ${credentialProviderExecutable}`;
     }
     try {
-      let result = execSync(command + " -C -F Json -U " + this._url, { timeout: 30000 });
+      let result = null;
+      try {
+        result = execSync(command + " -N -F Json -U " + this._url, { timeout: 10000 });
+      } catch {
+        let interactiveLoginTask = new vscode.Task(
+          { type: "nuget", task: `CredentialProvider.Microsoft` },
+          vscode.TaskScope.Workspace,
+          "nuget-gallery-credentials",
+          "CredentialProvider.Microsoft",
+          new vscode.ProcessExecution(command, ["-C", "False", "-R", "-U", this._url])
+        );
+
+        await TaskExecutor.ExecuteTask(interactiveLoginTask);
+        result = execSync(command + " -N -F Json -U " + this._url, { timeout: 10000 });
+      }
       let parsedResult = JSON.parse(result) as { Username: string; Password: string };
       return parsedResult;
     } catch (err) {
       console.error(err);
-      throw { message: "Failed to fetch credentials" };
+      throw {
+        credentialProviderError: true,
+        message: "Failed to fetch credentials. See 'Webview Developer Tools' for more details",
+      };
     }
   }
 }

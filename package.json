@@ -3,13 +3,23 @@
   "displayName": "NuGet Gallery",
   "publisher": "pcislo",
   "description": "The NuGet Gallery extension streamlines the process of installing and uninstalling NuGet packages, making it more efficient and user-friendly.",
-  "version": "0.9.0",
+  "version": "1.0.0",
+  "license": "MIT",
+  "icon": "docs/images/icon.png",
   "engines": {
     "vscode": "^1.87.0"
   },
   "categories": [
     "Other"
   ],
+  "bugs": {
+    "url": "https://github.com/pcislo/vscode-nuget-gallery/issues",
+    "email": "patrykcislo@gmail.com"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/pcislo/vscode-nuget-gallery.git"
+  },
   "activationEvents": [],
   "main": "./dist/extension.js",
   "contributes": {
@@ -18,10 +28,20 @@
         "command": "nuget-gallery.openSettings",
         "title": "Settings",
         "icon": "$(extensions-manage)"
+      },
+      {
+        "command": "nuget-gallery.reportProblem",
+        "title": "Report Problem",
+        "icon": "$(report)"
       }
     ],
     "menus": {
       "view/title": [
+        {
+          "command": "nuget-gallery.reportProblem",
+          "when": "view == nuget.gallery.view",
+          "group": "navigation"
+        },
         {
           "command": "nuget-gallery.openSettings",
           "when": "view == nuget.gallery.view",
