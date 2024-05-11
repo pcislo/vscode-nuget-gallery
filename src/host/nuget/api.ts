@@ -89,9 +89,9 @@ export default class NuGetApi {
         ? credentialProviderFolder + "/CredentialProvider.Microsoft.exe"
         : credentialProviderFolder + "/CredentialProvider.Microsoft.dll";
 
-    let command = credentialProviderExecutable;
+    let command = `"${credentialProviderExecutable}"`;
     if (process.platform !== "win32") {
-      command = `dotnet ${credentialProviderExecutable}`;
+      command = `dotnet "${credentialProviderExecutable}"`;
     }
     try {
       let result = null;
