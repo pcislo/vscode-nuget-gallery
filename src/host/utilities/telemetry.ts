@@ -42,13 +42,11 @@ export default class Telemetry implements Disposable {
     });
 
     const traceExporter = new OTLPTraceExporter({
-      url: "https://otlp.eu01.nr-data.net",
+      url: "https://otlp.eu01.nr-data.net/v1/traces",
       headers: {
-        "api-key": "NRBR-0032d8a9694b7bef03b",
+        "api-key": "",
       },
-      compression: "gzip" as any,
     });
-
     this.provider.addSpanProcessor(new SimpleSpanProcessor(traceExporter));
     this.tracer = this.provider.getTracer(context.extension.id);
   }

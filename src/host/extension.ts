@@ -23,11 +23,11 @@ let mediator: IMediator;
 
 export function activate(context: vscode.ExtensionContext) {
   const provider = new NugetViewProvider(context.extensionUri);
-  const telemetry = new Telemetry(context);
+  //const telemetry = new Telemetry(context);
 
-  telemetry.sendEvent("activated");
+  //telemetry.sendEvent("activated");
 
-  context.subscriptions.push(telemetry);
+  //context.subscriptions.push(telemetry);
   context.subscriptions.push(
     vscode.window.registerWebviewViewProvider("nuget.gallery.view", provider, {
       webviewOptions: {
