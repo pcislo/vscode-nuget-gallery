@@ -9,6 +9,7 @@ steps:
 
   - script: |
       npm install -g @vscode/vsce
+      npm ci
       vsce package
     displayName: Create VSIX
 
