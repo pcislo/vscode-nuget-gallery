@@ -17,11 +17,17 @@ import { GetPackages } from "./handlers/get-packages";
 import UpdateProject from "./handlers/update-project";
 import GetConfiguration from "./handlers/get-configuration";
 import UpdateConfiguration from "./handlers/update-configuration";
+import Telemetry from "./utilities/telemetry";
 
 let mediator: IMediator;
 
 export function activate(context: vscode.ExtensionContext) {
   const provider = new NugetViewProvider(context.extensionUri);
+  const telemetry = new Telemetry(context);
+
+  telemetry.sendEvent("activated");
+
+  context.subscriptions.push(telemetry);
   context.subscriptions.push(
     vscode.window.registerWebviewViewProvider("nuget.gallery.view", provider, {
       webviewOptions: {
@@ -32,6 +38,13 @@ export function activate(context: vscode.ExtensionContext) {
   context.subscriptions.push(
     vscode.commands.registerCommand("nuget-gallery.openSettings", async () => {
       await mediator?.PublishAsync<ShowSettingsRequest, ShowSettingsResponse>(SHOW_SETTINGS, {});
+    })
+  );
+  context.subscriptions.push(
+    vscode.commands.registerCommand("nuget-gallery.reportProblem", async () => {
+      vscode.env.openExternal(
+        vscode.Uri.parse("https://github.com/pcislo/vscode-nuget-gallery/issues/new")
+      );
     })
   );
 }
