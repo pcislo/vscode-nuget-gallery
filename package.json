@@ -1,87 +1,130 @@
 {
-	"name": "vscode-nuget-gallery",
-	"displayName": "NuGet Gallery",
-	"publisher": "patcx",
-	"description": "NuGet Gallery Extension makes installing and uninstalling NuGet packages easier",
-	"license": "ISC",
-	"version": "0.0.24",
-	"preview": true,
-	"icon": "docs/images/icon.png",
-	"engines": {
-		"vscode": "^1.37.0"
-	},
-	"repository": {
-		"type": "git",
-		"url": "https://github.com/pcislo/vscode-nuget-gallery"
-	},
-	"categories": [
-		"Other"
-	],
-	"activationEvents": [
-		"onCommand:extension.start"
-	],
-	"main": "./out/extension.js",
-	"contributes": {
-		"commands": [
-			{
-				"command": "extension.start",
-				"title": "Open NuGet Gallery",
-				"category": "NuGet"
-			}
-		],
-		"menus": {
-			"explorer/context": [
-				{
-					"when": "resourceExtname == .csproj || resourceExtname == .vbproj || resourceExtname == .fsproj || resourceExtname == .sln",
-					"command": "extension.start",
-					"group": "navigation"
-				}
-			]
-		},
-		"configuration": {
-			"title": "NuGet Gallery",
-			"properties": {
-				"NugetGallery.credentialProviderFolder": {
-					"type": "string",
-					"default": "%UserProfile%/.nuget/plugins/netfx/CredentialProvider.Microsoft",
-					"description": "Folder path containing CredentialProvider.Microsoft.exe"
-				},
-				"NugetGallery.sources": {
-					"type": "array",
-					"items": {
-						"type": "string"
-					},
-					"uniqueItems": true,
-					"minItems": 1,
-					"default": [
-						"{\"name\": \"nuget.org\",\"url\": \"https://api.nuget.org/v3/index.json\"}"
-					],
-					"description": "NuGet sources"
-				}
-			}
-		}
-	},
-	"scripts": {
-		"vscode:prepublish": "yarn run compile",
-		"compile": "tsc -p ./",
-		"watch": "tsc -watch -p ./",
-		"pretest": "yarn run compile",
-		"test": "node ./out/test/runTest.js"
-	},
-	"devDependencies": {
-		"@types/glob": "^7.1.1",
-		"@types/mocha": "^5.2.6",
-		"@types/node": "^10.12.21",
-		"@types/vscode": "^1.37.0",
-		"glob": "^7.1.4",
-		"mocha": "^6.1.4",
-		"tslint": "^5.12.1",
-		"typescript": "^3.3.1",
-		"vscode-test": "^1.0.2"
-	},
-	"dependencies": {
-		"axios": "^0.19.0",
-		"xmldom": "^0.1.27",
-		"xpath": "^0.0.27"
-	}
+  "name": "vscode-nuget-gallery",
+  "displayName": "NuGet Gallery",
+  "publisher": "pcislo",
+  "description": "The NuGet Gallery extension streamlines the process of installing and uninstalling NuGet packages, making it more efficient and user-friendly.",
+  "version": "1.0.0",
+  "license": "MIT",
+  "icon": "docs/images/icon.png",
+  "engines": {
+    "vscode": "^1.87.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "bugs": {
+    "url": "https://github.com/pcislo/vscode-nuget-gallery/issues",
+    "email": "patrykcislo@gmail.com"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/pcislo/vscode-nuget-gallery.git"
+  },
+  "activationEvents": [],
+  "main": "./dist/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "nuget-gallery.openSettings",
+        "title": "Settings",
+        "icon": "$(extensions-manage)"
+      },
+      {
+        "command": "nuget-gallery.reportProblem",
+        "title": "Report Problem",
+        "icon": "$(report)"
+      }
+    ],
+    "menus": {
+      "view/title": [
+        {
+          "command": "nuget-gallery.reportProblem",
+          "when": "view == nuget.gallery.view",
+          "group": "navigation"
+        },
+        {
+          "command": "nuget-gallery.openSettings",
+          "when": "view == nuget.gallery.view",
+          "group": "navigation"
+        }
+      ]
+    },
+    "viewsContainers": {
+      "panel": [
+        {
+          "id": "nugetGalleryView",
+          "title": "NuGet",
+          "icon": ""
+        }
+      ]
+    },
+    "views": {
+      "nugetGalleryView": [
+        {
+          "type": "webview",
+          "id": "nuget.gallery.view",
+          "name": "NuGet"
+        }
+      ]
+    },
+    "configuration": {
+      "title": "NuGet Gallery",
+      "properties": {
+        "NugetGallery.credentialProviderFolder": {
+          "type": "string",
+          "default": "{user-profile}/.nuget/plugins/netcore/CredentialProvider.Microsoft",
+          "description": "Folder containing CredentialProvider.Microsoft"
+        },
+        "NugetGallery.sources": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "uniqueItems": true,
+          "minItems": 1,
+          "default": [
+            "{\"name\": \"nuget.org\",\"url\": \"https://api.nuget.org/v3/index.json\"}"
+          ],
+          "description": "NuGet sources"
+        }
+      }
+    }
+  },
+  "scripts": {
+    "vscode:prepublish": "node ./esbuild.js",
+    "lint": "eslint src --ext ts",
+    "test": "vscode-test",
+    "esbuild": "node ./esbuild.js",
+    "test-compile": "tsc -p ./"
+  },
+  "devDependencies": {
+    "@types/lodash": "^4.17.0",
+    "@types/mocha": "^10.0.6",
+    "@types/node": "18.x",
+    "@types/object-hash": "^3.0.6",
+    "@types/vscode": "^1.87.0",
+    "@types/vscode-webview": "^1.57.5",
+    "@types/xmldom": "^0.1.34",
+    "@typescript-eslint/eslint-plugin": "^7.0.2",
+    "@typescript-eslint/parser": "^7.0.2",
+    "@vscode/codicons": "^0.0.35",
+    "@vscode/test-cli": "^0.0.6",
+    "@vscode/test-electron": "^2.3.9",
+    "esbuild": "^0.20.1",
+    "eslint": "^8.56.0",
+    "typescript": "^5.3.3"
+  },
+  "dependencies": {
+    "@microsoft/fast-element": "^1.12.0",
+    "@opentelemetry/api": "^1.8.0",
+    "@opentelemetry/exporter-trace-otlp-http": "^0.51.1",
+    "@vscode/webview-ui-toolkit": "^1.4.0",
+    "async-mutex": "^0.5.0",
+    "axios": "^1.6.8",
+    "lodash": "^4.17.21",
+    "object-hash": "^3.0.0",
+    "split.js": "^1.6.5",
+    "xmldom": "^0.6.0",
+    "xpath": "^0.0.34"
+  }
 }
