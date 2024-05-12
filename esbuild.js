@@ -4,6 +4,9 @@ const baseConfig = {
   bundle: true,
   minify: process.env.NODE_ENV === "production",
   sourcemap: process.env.NODE_ENV !== "production",
+  define: {
+    "process.env.NEW_RELIC_API_KEY": JSON.stringify(process.env.NEW_RELIC_API_KEY ?? ""),
+  },
   loader: {
     ".png": "dataurl",
     ".woff": "dataurl",

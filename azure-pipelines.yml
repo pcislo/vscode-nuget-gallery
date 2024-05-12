@@ -12,6 +12,8 @@ steps:
       npm ci
       vsce package
     displayName: Create VSIX
+    env:
+      NEW_RELIC_API_KEY: $(NEW_RELIC_API_KEY)
 
   - task: CopyFiles@2
     inputs:

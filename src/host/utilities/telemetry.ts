@@ -40,14 +40,14 @@ export default class Telemetry implements Disposable {
         "vscode.uiKind": vscode.env.uiKind,
       }) as any,
     });
-
     const traceExporter = new OTLPTraceExporter({
       url: "https://otlp.eu01.nr-data.net/v1/traces",
       headers: {
-        "api-key": "",
+        "api-key": process.env.NEW_RELIC_API_KEY,
       },
     });
     this.provider.addSpanProcessor(new SimpleSpanProcessor(traceExporter));
+    this.provider.register();
     this.tracer = this.provider.getTracer(context.extension.id);
   }
 
