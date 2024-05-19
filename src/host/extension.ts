@@ -28,8 +28,15 @@ let mediator: IMediator;
 export function activate(context: vscode.ExtensionContext) {
   const provider = new NugetViewProvider(context.extensionUri);
   const telemetry = new Telemetry(context);
-
   telemetry.sendEvent("activated");
+
+  let previousVersion: string | undefined = context.globalState.get("NugetGallery.version");
+  context.globalState.update("NugetGallery.version", context.extension.packageJSON.version);
+  if (previousVersion == undefined) {
+    telemetry.sendEvent("installed");
+  } else if (previousVersion != context.extension.packageJSON.version)
+    telemetry.sendEvent("upgraded", { fromVersion: previousVersion });
+
   context.subscriptions.push(telemetry);
   context.subscriptions.push(
     vscode.window.registerWebviewViewProvider("nuget.gallery.view", provider, {
