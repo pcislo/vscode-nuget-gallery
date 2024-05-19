@@ -3,7 +3,7 @@
   "displayName": "NuGet Gallery",
   "publisher": "patcx",
   "description": "The NuGet Gallery extension streamlines the process of installing and uninstalling NuGet packages, making it more efficient and user-friendly.",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "license": "MIT",
   "icon": "docs/images/icon.png",
   "engines": {
