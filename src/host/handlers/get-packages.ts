@@ -1,17 +1,11 @@
 import { IRequestHandler } from "@/common/messaging/core/types";
-import NuGetApi from "../nuget/api";
 import { AxiosError } from "axios";
+import nugetApiFactory from "../nuget/api-factory";
 import * as vscode from "vscode";
 
-type SourceApiCollection = {
-  [url: string]: NuGetApi;
-};
-
 export class GetPackages implements IRequestHandler<GetPackagesRequest, GetPackagesResponse> {
-  private readonly _sourceApiCollection: SourceApiCollection = {};
-
   async HandleAsync(request: GetPackagesRequest): Promise<GetPackagesResponse> {
-    let api = this.GetSourceApi(request.Url);
+    let api = nugetApiFactory.GetSourceApi(request.Url);
     try {
       let packages = await api.GetPackagesAsync(
         request.Filter,
@@ -37,15 +31,5 @@ export class GetPackages implements IRequestHandler<GetPackagesRequest, GetPacka
       };
       return result;
     }
-  }
-
-  private GetSourceApi(url: string) {
-    let credentialProviderFolder =
-      vscode.workspace.getConfiguration("NugetGallery").get<string>("credentialProviderFolder") ??
-      "";
-    if (!(url in this._sourceApiCollection))
-      this._sourceApiCollection[url] = new NuGetApi(url, credentialProviderFolder);
-
-    return this._sourceApiCollection[url];
   }
 }

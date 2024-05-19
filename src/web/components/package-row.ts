@@ -16,7 +16,7 @@ const template = html<PackageRow>`
   (x.iconUrl = "https://nuget.org/Content/gallery/img/default-package-icon.svg")}"></img> 
     <div class="title">
     <span class="name">${(x) => x.package.Name}</span>
-    <span class="authors">${(x) => x.package.Authors}</span></div> 
+    <span class="authors">@${(x) => x.package.Authors}</span></div> 
     </div>
     <div class="package-version"> ${(x) => x.package.Version} </div>
 </div>

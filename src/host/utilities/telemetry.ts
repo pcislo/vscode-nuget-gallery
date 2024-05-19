@@ -47,7 +47,6 @@ export default class Telemetry implements Disposable {
       },
     });
     this.provider.addSpanProcessor(new SimpleSpanProcessor(traceExporter));
-    this.provider.register();
     this.tracer = this.provider.getTracer(context.extension.id);
   }
 

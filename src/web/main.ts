@@ -10,6 +10,7 @@ import {
   vsCodePanelView,
   vsCodePanelTab,
   vsCodeProgressRing,
+  vsCodeLink,
 } from "@vscode/webview-ui-toolkit";
 
 import { FASTElement, customElement, html, css, when } from "@microsoft/fast-element";
@@ -18,8 +19,10 @@ import { PackagesView } from "./components/packages-view";
 import { PackageRow } from "./components/package-row";
 import { ProjectRow } from "./components/project-row";
 import { SettingsView } from "./components/settings-view";
+import { PackageDetailsComponent } from "./components/package-details";
 
 import "./main.css";
+import { ExpandableContainer } from "./components/expandable-container";
 
 provideVSCodeDesignSystem().register(
   registrations(),
@@ -32,10 +35,13 @@ provideVSCodeDesignSystem().register(
   vsCodeDropdown(),
   vsCodeOption(),
   vsCodeProgressRing(),
+  vsCodeLink(),
   PackagesView,
   PackageRow,
   ProjectRow,
-  SettingsView
+  SettingsView,
+  PackageDetailsComponent,
+  ExpandableContainer
 );
 
 const template = html<VSCodeNuGetGallery>`
