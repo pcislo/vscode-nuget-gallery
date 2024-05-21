@@ -14,6 +14,7 @@ steps:
     displayName: Create VSIX
     env:
       NEW_RELIC_API_KEY: $(NEW_RELIC_API_KEY)
+      ENVIRONMENT: production
 
   - task: CopyFiles@2
     inputs:

@@ -7,7 +7,9 @@ import { IBus } from "@/common/messaging/core/types";
 import {
   GET_CONFIGURATION,
   GET_PACKAGES,
+  GET_PACKAGE_DETAILS,
   GET_PROJECTS,
+  OPEN_URL,
   SHOW_SETTINGS,
   UPDATE_CONFIGURATION,
   UPDATE_PROJECT,
@@ -18,14 +20,23 @@ import UpdateProject from "./handlers/update-project";
 import GetConfiguration from "./handlers/get-configuration";
 import UpdateConfiguration from "./handlers/update-configuration";
 import Telemetry from "./utilities/telemetry";
+import OpenUrl from "./handlers/open-url";
+import { GetPackageDetails } from "./handlers/get-package-details";
 
 let mediator: IMediator;
 
 export function activate(context: vscode.ExtensionContext) {
   const provider = new NugetViewProvider(context.extensionUri);
   const telemetry = new Telemetry(context);
-
   telemetry.sendEvent("activated");
+
+  let previousVersion: string | undefined = context.globalState.get("NugetGallery.version");
+  context.globalState.update("NugetGallery.version", context.extension.packageJSON.version);
+  if (previousVersion == undefined) {
+    telemetry.sendEvent("installed");
+  } else if (previousVersion != context.extension.packageJSON.version)
+    telemetry.sendEvent("upgraded", { fromVersion: previousVersion });
+
   context.subscriptions.push(telemetry);
   context.subscriptions.push(
     vscode.window.registerWebviewViewProvider("nuget.gallery.view", provider, {
@@ -64,7 +75,9 @@ class NugetViewProvider implements vscode.WebviewViewProvider {
       .AddHandler(GET_PACKAGES, new GetPackages())
       .AddHandler(UPDATE_PROJECT, new UpdateProject())
       .AddHandler(GET_CONFIGURATION, new GetConfiguration())
-      .AddHandler(UPDATE_CONFIGURATION, new UpdateConfiguration());
+      .AddHandler(UPDATE_CONFIGURATION, new UpdateConfiguration())
+      .AddHandler(GET_PACKAGE_DETAILS, new GetPackageDetails())
+      .AddHandler(OPEN_URL, new OpenUrl());
 
     const webJsSrc = webviewView.webview.asWebviewUri(
       vscode.Uri.joinPath(this._extensionUri, ...["dist", "web.js"])

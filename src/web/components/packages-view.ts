@@ -7,6 +7,7 @@ import {
   observable,
   when,
   ExecutionContext,
+  volatile,
 } from "@microsoft/fast-element";
 
 import Split from "split.js";
@@ -87,14 +88,23 @@ const template = html<PackagesView>`
         (x) => x.selectedPackage != null,
         html<PackagesView>`
           <div class="package-info">
-            <span class="package-title">${(x) => x.selectedPackage?.Name}</span>
+            <span class="package-title">
+              ${when(
+                (x) => x.NugetOrgPackageUrl != null,
+                html<PackagesView>`<a target="_blank" :href=${(x) => x.NugetOrgPackageUrl}
+                  ><span class="package-link-icon codicon codicon-link-external"></span>${(x) =>
+                    x.selectedPackage?.Name}</a
+                >`,
+                html<PackagesView>`${(x) => x.selectedPackage?.Name}`
+              )}
+            </span>
             <div class="version-selector">
               <vscode-dropdown
                 :value=${(x) => x.selectedVersion}
                 @change=${(x, c) => (x.selectedVersion = (c.event.target as any).value)}
               >
                 ${repeat(
-                  (x) => x.selectedPackage!.Versions,
+                  (x) => x.selectedPackage?.Versions || [],
                   html<string>` <vscode-option>${(x) => x}</vscode-option> `
                 )}
               </vscode-dropdown>
@@ -103,7 +113,13 @@ const template = html<PackagesView>`
               </vscode-button>
             </div>
           </div>
-          <div class="projects-container">
+          <div class="projects-panel-container">
+            <package-details
+              :package=${(x) => x.selectedPackage}
+              :packageVersionUrl=${(x) => x.PackageVersionUrl}
+              :source=${(x) => x.selectedSourceUrl}
+            ></package-details>
+            <div class="separator"></div>
             ${when(
               (x) => x.projects.length > 0,
               html<PackagesView>`
@@ -234,6 +250,18 @@ const styles = css`
           font-weight: bold;
           overflow: hidden;
           text-overflow: ellipsis;
+          text-wrap: nowrap;
+
+          a {
+            text-decoration: none;
+            color: var(--vscode-editor-foreground);
+          }
+
+          .package-link-icon {
+            vertical-align: middle;
+            font-size: 12px;
+            margin-right: 3px;
+          }
         }
 
         .version-selector {
@@ -241,20 +269,28 @@ const styles = css`
           min-width: 128px;
         }
       }
-      .projects-container {
+      .projects-panel-container {
         overflow-y: auto;
+        overflow-x: hidden;
         .no-projects {
           display: flex;
           gap: 4px;
           margin-left: 6px;
+        }
+
+        .separator {
+          margin: 10px 0px;
+          height: 1px;
+          background-color: var(--vscode-panelSection-border);
         }
       }
     }
   }
 `;
 
-const PACKAGE_FETCH_TAKE = 30;
+const PACKAGE_FETCH_TAKE = 50;
 const PACKAGE_CONTAINER_SCROLL_MARGIN = 196;
+const NUGET_ORG_PREFIX = "https://api.nuget.org";
 
 @customElement({
   name: "packages-view",
@@ -304,6 +340,21 @@ export class PackagesView extends FASTElement {
 
   disconnectedCallback(): void {
     this.splitter?.destroy();
+  }
+
+  @volatile
+  get NugetOrgPackageUrl() {
+    if (this.selectedSourceUrl.startsWith(NUGET_ORG_PREFIX))
+      return `https://www.nuget.org/packages/${this.selectedPackage?.Name}/${this.selectedVersion}`;
+    else return null;
+  }
+
+  @volatile
+  get PackageVersionUrl() {
+    return (
+      this.selectedPackage?.Model.Versions.filter((x) => x.Version == this.selectedVersion)[0].Id ??
+      ""
+    );
   }
 
   PrerelaseChangedEvent(target: EventTarget) {

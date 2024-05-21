@@ -5,8 +5,12 @@ import * as vscode from "vscode";
 import TaskExecutor from "../utilities/task-executor";
 import os from "os";
 
-type Response = {
+type GetPackagesResponse = {
   data: Array<Package>;
+};
+
+type GetPackageDetailsResponse = {
+  data: PackageDetails;
 };
 
 export default class NuGetApi {
@@ -33,7 +37,7 @@ export default class NuGetApi {
     prerelease: boolean,
     skip: number,
     take: number
-  ): Promise<Response> {
+  ): Promise<GetPackagesResponse> {
     await this.EnsureSearchUrl();
 
     let result = await this.http.get(this._searchUrl, {
@@ -44,22 +48,65 @@ export default class NuGetApi {
         prerelease: prerelease,
       },
     });
-    const mappedData: Response["data"] = result.data.data.map((item: any) => ({
+    const mappedData: Array<Package> = result.data.data.map((item: any) => ({
       Id: item["@id"] || "",
       Name: item.id || "",
       Authors: item.authors || [],
       Description: item.description || "",
       IconUrl: item.iconUrl || "",
+      Registration: item.registration || "",
       LicenseUrl: item.licenseUrl || "",
+      ProjectUrl: item.projectUrl || "",
       TotalDownloads: item.totalDownloads || 0,
       Verified: item.verified || false,
       Version: item.version || "",
-      Versions: item.versions.map((v: any) => v.version) || [],
+      Versions:
+        item.versions.map((v: any) => ({
+          Version: v.version,
+          Id: v["@id"],
+        })) || [],
+      Tags: item.tags || [],
     }));
 
     return {
       data: mappedData,
     };
+  }
+
+  async GetPackageDetailsAsync(packageVersionUrl: string): Promise<GetPackageDetailsResponse> {
+    await this.EnsureSearchUrl();
+    let packageVersion = await this.http.get(packageVersionUrl);
+
+    if (!packageVersion.data?.catalogEntry)
+      return {
+        data: {
+          dependencies: {
+            frameworks: {},
+          },
+        },
+      };
+
+    let result = await this.http.get(packageVersion.data.catalogEntry);
+    let packageDetails: PackageDetails = {
+      dependencies: {
+        frameworks: {},
+      },
+    };
+
+    result.data.dependencyGroups?.forEach((dependencyGroup: any) => {
+      let targetFramework = dependencyGroup.targetFramework;
+      packageDetails.dependencies.frameworks[targetFramework] = [];
+      dependencyGroup.dependencies?.forEach((dependency: any) => {
+        packageDetails.dependencies.frameworks[targetFramework].push({
+          package: dependency.id,
+          versionRange: dependency.range,
+        });
+      });
+      if (packageDetails.dependencies.frameworks[targetFramework].length == 0)
+        delete packageDetails.dependencies.frameworks[targetFramework];
+    });
+
+    return { data: packageDetails };
   }
 
   private async EnsureSearchUrl() {

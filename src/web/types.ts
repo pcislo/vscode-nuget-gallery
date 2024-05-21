@@ -5,13 +5,16 @@ export class PackageViewModel {
   Id: string;
   Name: string;
   private _authors: Array<string>;
+  private _tags: Array<string>;
   Description: string;
   IconUrl: string;
   LicenseUrl: string;
+  ProjectUrl: string;
   TotalDownloads: number;
   Verified: boolean;
   Version: string;
   Versions: Array<string>;
+  Model: Package;
   @observable Selected: boolean = false;
 
   constructor(model: Package) {
@@ -21,14 +24,21 @@ export class PackageViewModel {
     this.Description = model.Description;
     this.IconUrl = model.IconUrl;
     this.LicenseUrl = model.LicenseUrl;
+    this.ProjectUrl = model.ProjectUrl;
     this.TotalDownloads = model.TotalDownloads;
     this.Verified = model.Verified;
     this.Version = model.Version;
-    this.Versions = model.Versions.reverse();
+    this.Versions = model.Versions.map((x) => x.Version).reverse();
+    this._tags = model.Tags;
+    this.Model = model;
   }
 
   get Authors() {
-    return "@" + this._authors.join(",");
+    return this._authors.join(", ");
+  }
+
+  get Tags() {
+    return this._tags.join(", ");
   }
 }
 

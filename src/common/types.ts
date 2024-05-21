@@ -5,10 +5,31 @@ type Package = {
   Description: "string";
   IconUrl: string;
   LicenseUrl: string;
+  ProjectUrl: string;
+  Registration: string;
   TotalDownloads: number;
   Verified: boolean;
   Version: string;
-  Versions: Array<string>;
+  Versions: Array<PackageVersion>;
+  Tags: Array<string>;
+};
+
+type PackageVersion = {
+  Version: string;
+  Id: string;
+};
+
+type PackageDetails = {
+  dependencies: PackageDependencyGroup;
+};
+
+type PackageDependencyGroup = {
+  frameworks: { [id: string]: Array<PackageDependency> };
+};
+
+type PackageDependency = {
+  package: string;
+  versionRange: string;
 };
 
 type ProjectPackage = {
