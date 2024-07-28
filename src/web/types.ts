@@ -35,28 +35,24 @@ export class PackageViewModel {
 
   get Authors() {
     if (Array.isArray(this._authors)) {
-      console.log(this._authors);
       return this._authors.length ? this._authors.join(", ") : "";
     } else if (typeof this._authors === "string") {
-      console.log(this._authors);
       return this._authors;
     } else {
       console.log("Invalid type for _authors:", this._authors);
-      return "";
     }
+    return "";
   }
 
   get Tags() {
     if (Array.isArray(this._tags)) {
-      console.log(this._tags);
       return this._tags.length ? this._tags.join(", ") : "";
     } else if (typeof this._tags === "string") {
-      console.log(this._tags);
       return this._tags;
     } else {
       console.log("Invalid type for _tags:", this._tags);
-      return "";
     }
+    return "";
   }
 }
 
