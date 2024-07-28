@@ -53,34 +53,43 @@ const template = html<PackagesView>`
           >
         </div>
       </div>
-      <div
-        class="packages-container"
-        @scroll=${(x, e) => x.PackagesScrollEvent(e.event.target as HTMLElement)}
-      >
-        ${when(
-          (x) => !x.packagesLoadingError,
-          html<PackagesView>`
-            ${repeat(
-              (x) => x.packages,
-              html<PackageViewModel>`
-                <package-row
-                  :package=${(x) => x}
-                  @click=${(x, c: ExecutionContext<PackagesView, any>) => c.parent.SelectPackage(x)}
-                >
-                </package-row>
-              `
-            )}
+
+      <vscode-panels class="tabs" aria-label="Default">
+        <vscode-panel-tab id="tab-1">BROWSE</vscode-panel-tab>
+        <vscode-panel-tab id="tab-2">INSTALLED</vscode-panel-tab>
+        <vscode-panel-view class="views" id="view-1">
+          <div
+            class="packages-container"
+            @scroll=${(x, e) => x.PackagesScrollEvent(e.event.target as HTMLElement)}
+          >
             ${when(
-              (x) => !x.noMorePackages,
-              html<PackagesView>`<vscode-progress-ring class="loader"></vscode-progress-ring>`
+              (x) => !x.packagesLoadingError,
+              html<PackagesView>`
+                ${repeat(
+                  (x) => x.packages,
+                  html<PackageViewModel>`
+                    <package-row
+                      :package=${(x) => x}
+                      @click=${(x, c: ExecutionContext<PackagesView, any>) =>
+                        c.parent.SelectPackage(x)}
+                    >
+                    </package-row>
+                  `
+                )}
+                ${when(
+                  (x) => !x.noMorePackages,
+                  html<PackagesView>`<vscode-progress-ring class="loader"></vscode-progress-ring>`
+                )}
+              `,
+              html<PackagesView>`<div class="error">
+                <span class="codicon codicon-error"></span> Failed to fetch packages. See 'Webview
+                Developer Tools' for more details
+              </div> `
             )}
-          `,
-          html<PackagesView>`<div class="error">
-            <span class="codicon codicon-error"></span> Failed to fetch packages. See 'Webview
-            Developer Tools' for more details
-          </div> `
-        )}
-      </div>
+          </div>
+        </vscode-panel-view>
+        <vscode-panel-view class="views" id="view-2"> Update </vscode-panel-view>
+      </vscode-panels>
     </div>
 
     <div class="col" id="projects">
@@ -207,6 +216,19 @@ const styles = css`
         align-self: center;
         flex: 1;
       }
+
+      .tabs {
+        .views {
+          flex: 1;
+          padding: 0;
+        }
+        &::part(tabpanel) {
+          overflow: hidden;
+          display: flex;
+          margin-top: 6px;
+        }
+      }
+
       .packages-container {
         overflow-y: auto;
         display: flex;
