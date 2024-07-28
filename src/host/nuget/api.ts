@@ -131,19 +131,16 @@ export default class NuGetApi {
       "\\"
     );
 
-    let credentialProviderExecutable =
-      process.platform === "win32"
-        ? credentialProviderFolder + "/CredentialProvider.Microsoft.exe"
-        : credentialProviderFolder + "/CredentialProvider.Microsoft.dll";
-
-    let command = `"${credentialProviderExecutable}"`;
-    if (process.platform !== "win32") {
-      command = `dotnet "${credentialProviderExecutable}"`;
+    let command = null;
+    if (process.platform === "win32") {
+      command = credentialProviderFolder + "\\CredentialProvider.Microsoft.exe";
+    } else {
+      command = `dotnet "${credentialProviderFolder}/CredentialProvider.Microsoft.dll"`;
     }
     try {
       let result = null;
       try {
-        result = execSync(command + " -N -F Json -U " + this._url, { timeout: 10000 });
+        result = execSync(command + " -I -N -F Json -U " + this._url, { timeout: 10000 });
       } catch {
         let interactiveLoginTask = new vscode.Task(
           { type: "nuget", task: `CredentialProvider.Microsoft` },
