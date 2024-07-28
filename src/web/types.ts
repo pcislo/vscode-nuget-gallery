@@ -34,11 +34,25 @@ export class PackageViewModel {
   }
 
   get Authors() {
-    return this._authors.join(", ");
+    if (Array.isArray(this._authors)) {
+      return this._authors.length ? this._authors.join(", ") : "";
+    } else if (typeof this._authors === "string") {
+      return this._authors;
+    } else {
+      console.log("Invalid type for _authors:", this._authors);
+    }
+    return "";
   }
 
   get Tags() {
-    return this._tags.join(", ");
+    if (Array.isArray(this._tags)) {
+      return this._tags.length ? this._tags.join(", ") : "";
+    } else if (typeof this._tags === "string") {
+      return this._tags;
+    } else {
+      console.log("Invalid type for _tags:", this._tags);
+    }
+    return "";
   }
 }
 
