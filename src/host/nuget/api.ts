@@ -143,7 +143,7 @@ export default class NuGetApi {
     try {
       let result = null;
       try {
-        result = execSync(command + " -N -F Json -U " + this._url, { timeout: 10000 });
+        result = execSync(command + " -I -N -F Json -U " + this._url, { timeout: 10000 });
       } catch {
         let interactiveLoginTask = new vscode.Task(
           { type: "nuget", task: `CredentialProvider.Microsoft` },
