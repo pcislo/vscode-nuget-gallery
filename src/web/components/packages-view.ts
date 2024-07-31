@@ -11,57 +11,60 @@ import {
 } from "@microsoft/fast-element";
 
 import Split from "split.js";
-import lodash from "lodash";
 import hash from "object-hash";
 import { Configuration, IMediator } from "@/web/registrations";
 import { GET_PACKAGES, GET_PROJECTS } from "@/common/messaging/core/commands";
 import codicon from "@/web/styles/codicon.css";
 import { scrollableBase } from "@/web/styles/base.css";
 import { PackageViewModel, ProjectViewModel } from "../types";
+import { FilterEvent } from "./search-bar";
 
 const template = html<PackagesView>`
   <div class="container">
     <div class="col" id="packages">
-      <div class="search-bar">
-        <div class="search-bar-left">
-          <vscode-text-field
-            class="search-text-field"
-            @input=${(x, c) => x.FilterInputEvent(c.event.target!)}
+      <search-bar
+        @reload-invoked=${(x) => x.LoadPackages()}
+        @filter-changed=${(x, e) =>
+          x.UpdatePackagesFilters((e.event as CustomEvent<FilterEvent>).detail)}
+      ></search-bar>
+      <vscode-panels class="tabs" aria-label="Default">
+        <vscode-panel-tab class="tab" id="tab-1">BROWSE</vscode-panel-tab>
+        <vscode-panel-tab class="tab" id="tab-2">INSTALLED</vscode-panel-tab>
+        <vscode-panel-view class="views" id="view-1">
+          <div
+            class="packages-container"
+            @scroll=${(x, e) => x.PackagesScrollEvent(e.event.target as HTMLElement)}
           >
-            <span slot="start" class="codicon codicon-search"></span>
-          </vscode-text-field>
-          <vscode-button appearance="icon" @click=${(x) => x.LoadPackages()}>
-            <span class="codicon codicon-refresh"></span>
-          </vscode-button>
-        </div>
-        <div class="search-bar-right">
-          <vscode-dropdown
-            :value=${(x) => x.selectedSourceUrl}
-            @change=${(x, c) => x.SelectSource((c.event.target as HTMLInputElement).value)}
-          >
-            ${repeat(
-              (x) => x.configuration.Configuration!.Sources,
-              html<Source>`
-                <vscode-option :value="${(x) => x.Url}">${(x) => x.Name}</vscode-option>
-              `
+            ${when(
+              (x) => !x.packagesLoadingError,
+              html<PackagesView>`
+                ${repeat(
+                  (x) => x.packages,
+                  html<PackageViewModel>`
+                    <package-row
+                      :package=${(x) => x}
+                      @click=${(x, c: ExecutionContext<PackagesView, any>) =>
+                        c.parent.SelectPackage(x)}
+                    >
+                    </package-row>
+                  `
+                )}
+                ${when(
+                  (x) => !x.noMorePackages,
+                  html<PackagesView>`<vscode-progress-ring class="loader"></vscode-progress-ring>`
+                )}
+              `,
+              html<PackagesView>`<div class="error">
+                <span class="codicon codicon-error"></span> Failed to fetch packages. See 'Webview
+                Developer Tools' for more details
+              </div> `
             )}
-          </vscode-dropdown>
-          <vscode-checkbox
-            :checked="${(x) => x.prerelase}"
-            @change=${(x, c) => x.PrerelaseChangedEvent(c.event.target!)}
-            >Prerelease</vscode-checkbox
-          >
-        </div>
-      </div>
-      <div
-        class="packages-container"
-        @scroll=${(x, e) => x.PackagesScrollEvent(e.event.target as HTMLElement)}
-      >
-        ${when(
-          (x) => !x.packagesLoadingError,
-          html<PackagesView>`
+          </div>
+        </vscode-panel-view>
+        <vscode-panel-view class="views installed-packages" id="view-2">
+          <div class="packages-container">
             ${repeat(
-              (x) => x.packages,
+              (x) => x.projectsPackages,
               html<PackageViewModel>`
                 <package-row
                   :package=${(x) => x}
@@ -70,17 +73,9 @@ const template = html<PackagesView>`
                 </package-row>
               `
             )}
-            ${when(
-              (x) => !x.noMorePackages,
-              html<PackagesView>`<vscode-progress-ring class="loader"></vscode-progress-ring>`
-            )}
-          `,
-          html<PackagesView>`<div class="error">
-            <span class="codicon codicon-error"></span> Failed to fetch packages. See 'Webview
-            Developer Tools' for more details
-          </div> `
-        )}
-      </div>
+          </div>
+        </vscode-panel-view>
+      </vscode-panels>
     </div>
 
     <div class="col" id="projects">
@@ -117,7 +112,7 @@ const template = html<PackagesView>`
             <package-details
               :package=${(x) => x.selectedPackage}
               :packageVersionUrl=${(x) => x.PackageVersionUrl}
-              :source=${(x) => x.selectedSourceUrl}
+              :source=${(x) => x.filters.SourceUrl}
             ></package-details>
             <div class="separator"></div>
             ${when(
@@ -127,6 +122,8 @@ const template = html<PackagesView>`
                   (x) => x.projects,
                   html<ProjectViewModel>`
                     <project-row
+                      @project-updated=${(x, c: ExecutionContext<PackagesView, any>) =>
+                        c.parent.LoadProjectsPackages()}
                       :project=${(x) => x}
                       :packageId=${(x, c: ExecutionContext<PackagesView, any>) =>
                         c.parent.selectedPackage?.Name}
@@ -161,28 +158,6 @@ const styles = css`
       overflow: hidden;
     }
 
-    .search-bar {
-      display: flex;
-      gap: 10px;
-      justify-content: space-between;
-      margin-bottom: 10px;
-
-      .search-bar-left {
-        flex: 1;
-        display: flex;
-        gap: 4px;
-        .search-text-field {
-          flex: 1;
-          max-width: 340px;
-          min-width: 140px;
-        }
-      }
-      .search-bar-right {
-        display: flex;
-        gap: 10px;
-      }
-    }
-
     .gutter {
       display: flex;
       margin: 0 6px;
@@ -207,6 +182,32 @@ const styles = css`
         align-self: center;
         flex: 1;
       }
+
+      .tabs {
+        .tab {
+          height: unset;
+          font-size: 11px;
+        }
+
+        .installed-packages {
+          flex-direction: column;
+        }
+
+        .views {
+          flex: 1;
+          padding: 0;
+        }
+        &::part(tablist) {
+          font-size: 11px;
+          padding: 0px;
+        }
+        &::part(tabpanel) {
+          overflow: hidden;
+          display: flex;
+          margin-top: 6px;
+        }
+      }
+
       .packages-container {
         overflow-y: auto;
         display: flex;
@@ -298,7 +299,6 @@ const NUGET_ORG_PREFIX = "https://api.nuget.org";
   styles: [codicon, scrollableBase, styles],
 })
 export class PackagesView extends FASTElement {
-  delayedPackagesLoader = lodash.debounce(() => this.LoadPackages(), 500);
   splitter: Split.Instance | null = null;
   packagesPage: number = 0;
   packagesLoadingInProgress: boolean = false;
@@ -306,12 +306,11 @@ export class PackagesView extends FASTElement {
   @IMediator mediator!: IMediator;
   @Configuration configuration!: Configuration;
   @observable projects: Array<ProjectViewModel> = [];
-  @observable selectedSourceUrl: string = "";
   @observable selectedVersion: string = "";
   @observable selectedPackage: PackageViewModel | null = null;
   @observable packages: Array<PackageViewModel> = [];
-  @observable prerelase: boolean = true;
-  @observable filterQuery: string = "";
+  @observable projectsPackages: Array<PackageViewModel> = [];
+  @observable filters: FilterEvent = { Prerelease: true, Query: "", SourceUrl: "" };
   @observable noMorePackages: boolean = false;
   @observable packagesLoadingError: boolean = false;
 
@@ -333,7 +332,7 @@ export class PackagesView extends FASTElement {
         return gutter;
       },
     });
-    this.selectedSourceUrl = this.configuration.Configuration?.Sources[0].Url ?? "";
+    this.filters.SourceUrl = this.configuration.Configuration?.Sources[0].Url ?? "";
     this.LoadPackages();
     this.LoadProjects();
   }
@@ -344,36 +343,71 @@ export class PackagesView extends FASTElement {
 
   @volatile
   get NugetOrgPackageUrl() {
-    if (this.selectedSourceUrl.startsWith(NUGET_ORG_PREFIX))
+    if (this.filters.SourceUrl.startsWith(NUGET_ORG_PREFIX))
       return `https://www.nuget.org/packages/${this.selectedPackage?.Name}/${this.selectedVersion}`;
     else return null;
   }
 
   @volatile
   get PackageVersionUrl() {
+    if (
+      this.selectedPackage?.Model.Versions == undefined ||
+      this.selectedPackage?.Model.Versions.length < 1
+    )
+      return "";
+
     return (
       this.selectedPackage?.Model.Versions.filter((x) => x.Version == this.selectedVersion)[0].Id ??
       ""
     );
   }
 
-  PrerelaseChangedEvent(target: EventTarget) {
-    this.prerelase = (target as HTMLInputElement).checked;
+  LoadProjectsPackages() {
+    var packages = this.projects?.flatMap((p) => p.Packages);
+
+    const grouped = packages.reduce((acc: any, item) => {
+      const { Id, Version } = item;
+
+      if (!acc[Id]) {
+        acc[Id] = [];
+      }
+
+      if (acc[Id].indexOf(Version) < 0) {
+        acc[Id].push(Version);
+      }
+
+      return acc;
+    }, {});
+
+    this.projectsPackages = Object.entries(grouped).map(
+      ([Id, Versions]) =>
+        new PackageViewModel({
+          Id: Id,
+          Name: Id,
+          IconUrl: "",
+          Versions: [],
+          Version: (Versions as Array<string>)?.length == 1 ? (Versions as Array<string>)[0] : "",
+          Description: "",
+          LicenseUrl: "",
+          ProjectUrl: "",
+          Verified: false,
+          TotalDownloads: 0,
+          Tags: [],
+          Registration: "",
+          Authors: [],
+        })
+    );
+  }
+
+  UpdatePackagesFilters(filters: FilterEvent) {
+    this.filters = filters;
     this.LoadPackages();
-  }
-
-  FilterInputEvent(target: EventTarget) {
-    this.filterQuery = (target as HTMLInputElement).value;
-    this.delayedPackagesLoader();
-  }
-
-  SelectSource(url: string) {
-    this.selectedSourceUrl = url;
-    this.LoadPackages(false);
+    this.LoadProjectsPackages();
   }
 
   SelectPackage(selectedPackage: PackageViewModel) {
     this.packages.filter((x) => x.Selected).forEach((x) => (x.Selected = false));
+    this.projectsPackages.filter((x) => x.Selected).forEach((x) => (x.Selected = false));
     selectedPackage.Selected = true;
     this.selectedPackage = selectedPackage;
     this.selectedVersion = this.selectedPackage.Version;
@@ -391,9 +425,9 @@ export class PackagesView extends FASTElement {
   async LoadPackages(append: boolean = false) {
     let _getLoadPackageRequest = () => {
       return {
-        Url: this.selectedSourceUrl,
-        Filter: this.filterQuery,
-        Prerelease: this.prerelase,
+        Url: this.filters.SourceUrl,
+        Filter: this.filters.Query,
+        Prerelease: this.filters.Prerelease,
         Skip: this.packagesPage * PACKAGE_FETCH_TAKE,
         Take: PACKAGE_FETCH_TAKE,
       };
@@ -435,5 +469,6 @@ export class PackagesView extends FASTElement {
     );
 
     this.projects = result.Projects.map((x) => new ProjectViewModel(x));
+    this.LoadProjectsPackages();
   }
 }
