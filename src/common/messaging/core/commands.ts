@@ -6,3 +6,4 @@ export const GET_CONFIGURATION = "GetConfiguration";
 export const UPDATE_CONFIGURATION = "UpdateConfiguration";
 export const GET_PACKAGE_DETAILS = "GetPackageDetails";
 export const OPEN_URL = "OpenUrl";
+export const GET_PACKAGE = "GetPackage";

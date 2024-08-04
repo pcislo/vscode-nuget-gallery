@@ -6,6 +6,7 @@ import { IMediator } from "@/web/registrations";
 import { IBus } from "@/common/messaging/core/types";
 import {
   GET_CONFIGURATION,
+  GET_PACKAGE,
   GET_PACKAGES,
   GET_PACKAGE_DETAILS,
   GET_PROJECTS,
@@ -22,6 +23,7 @@ import UpdateConfiguration from "./handlers/update-configuration";
 import Telemetry from "./utilities/telemetry";
 import OpenUrl from "./handlers/open-url";
 import { GetPackageDetails } from "./handlers/get-package-details";
+import { GetPackage } from "./handlers/get-package";
 
 let mediator: IMediator;
 
@@ -73,6 +75,7 @@ class NugetViewProvider implements vscode.WebviewViewProvider {
     mediator
       .AddHandler(GET_PROJECTS, new GetProjects())
       .AddHandler(GET_PACKAGES, new GetPackages())
+      .AddHandler(GET_PACKAGE, new GetPackage())
       .AddHandler(UPDATE_PROJECT, new UpdateProject())
       .AddHandler(GET_CONFIGURATION, new GetConfiguration())
       .AddHandler(UPDATE_CONFIGURATION, new UpdateConfiguration())
