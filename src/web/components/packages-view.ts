@@ -67,6 +67,7 @@ const template = html<PackagesView>`
               (x) => x.projectsPackages,
               html<PackageViewModel>`
                 <package-row
+                  :showInstalledVersion="${(x) => true}"
                   :package=${(x) => x}
                   @click=${(x, c: ExecutionContext<PackagesView, any>) => c.parent.SelectPackage(x)}
                 >
@@ -411,7 +412,9 @@ export class PackagesView extends FASTElement {
             Name: Id,
             IconUrl: "",
             Versions: (Versions as Array<string>)?.map((x) => ({ Id: "", Version: x })),
-            Version: (Versions as Array<string>)?.length == 1 ? (Versions as Array<string>)[0] : "",
+            InstalledVersion:
+              (Versions as Array<string>)?.length == 1 ? (Versions as Array<string>)[0] : "",
+            Version: "",
             Description: "",
             LicenseUrl: "",
             ProjectUrl: "",
@@ -437,7 +440,6 @@ export class PackagesView extends FASTElement {
     this.projectsPackages.filter((x) => x.Selected).forEach((x) => (x.Selected = false));
     selectedPackage.Selected = true;
     this.selectedPackage = selectedPackage;
-    this.selectedVersion = this.selectedPackage.Version;
     if (this.selectedPackage.Status == "MissingDetails") {
       let packageToUpdate = this.selectedPackage;
       let result = await this.mediator.PublishAsync<GetPackageRequest, GetPackageResponse>(
@@ -451,11 +453,12 @@ export class PackagesView extends FASTElement {
       if (result.IsFailure || !result.Package) {
         packageToUpdate.Status = "Error";
       } else {
-        result.Package.Version = "";
+        if (packageToUpdate.Version != "") result.Package.Version = "";
         packageToUpdate.UpdatePackage(result.Package);
         packageToUpdate.Status = "Detailed";
       }
     }
+    this.selectedVersion = this.selectedPackage.Version;
   }
 
   PackagesScrollEvent(target: HTMLElement) {

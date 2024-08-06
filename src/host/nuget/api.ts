@@ -89,7 +89,7 @@ export default class NuGetApi {
       let result = await this.http.get(url);
       if ((result as any).code == "ERR_BAD_REQUEST")
         return { isError: true, errorMessage: "Package couldn't be found", data: undefined };
-      console.log("Result", (result as any).code, (result as any).cause, (result as any).message);
+
       for (let i = 0; i < result.data.count; i++) {
         let page = result.data.items[i];
         if (page.items) items.push(...page.items);

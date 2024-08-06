@@ -23,7 +23,12 @@ const template = html<PackageRow>`
     )}
     </div>
     </div>
-    <div class="package-version"> ${(x) => x.package.Version} </div>
+    <div class="package-version"> ${when(
+      (x) => x.showInstalledVersion,
+      html<PackageRow>`${(x) => x.package.InstalledVersion}`,
+      html<PackageRow>`${(x) => x.package.Version}`
+    )}
+    </div>
 </div>
 `;
 const styles = css`
@@ -81,6 +86,7 @@ const styles = css`
   styles: [styles],
 })
 export class PackageRow extends FASTElement {
+  @attr showInstalledVersion!: boolean;
   @attr package!: PackageViewModel;
   @observable iconUrl: string | null = null;
 

@@ -9,6 +9,7 @@ type Package = {
   Registration: string;
   TotalDownloads: number;
   Verified: boolean;
+  InstalledVersion: string;
   Version: string;
   Versions: Array<PackageVersion>;
   Tags: Array<string>;
