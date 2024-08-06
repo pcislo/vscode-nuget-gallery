@@ -23,6 +23,7 @@ import { PackageDetailsComponent } from "./components/package-details";
 
 import "./main.css";
 import { ExpandableContainer } from "./components/expandable-container";
+import { SearchBar } from "./components/search-bar";
 
 provideVSCodeDesignSystem().register(
   registrations(),
@@ -41,7 +42,8 @@ provideVSCodeDesignSystem().register(
   ProjectRow,
   SettingsView,
   PackageDetailsComponent,
-  ExpandableContainer
+  ExpandableContainer,
+  SearchBar
 );
 
 const template = html<VSCodeNuGetGallery>`

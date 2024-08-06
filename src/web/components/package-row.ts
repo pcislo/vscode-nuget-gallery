@@ -6,6 +6,7 @@ import {
   html,
   observable,
   volatile,
+  when,
 } from "@microsoft/fast-element";
 import { PackageViewModel } from "../types";
 
@@ -16,9 +17,18 @@ const template = html<PackageRow>`
   (x.iconUrl = "https://nuget.org/Content/gallery/img/default-package-icon.svg")}"></img> 
     <div class="title">
     <span class="name">${(x) => x.package.Name}</span>
-    <span class="authors">@${(x) => x.package.Authors}</span></div> 
+    ${when(
+      (x) => x.package.Authors,
+      html<PackageRow>`<span class="authors">@${(x) => x.package.Authors}</span>`
+    )}
     </div>
-    <div class="package-version"> ${(x) => x.package.Version} </div>
+    </div>
+    <div class="package-version"> ${when(
+      (x) => x.showInstalledVersion,
+      html<PackageRow>`${(x) => x.package.InstalledVersion}`,
+      html<PackageRow>`${(x) => x.package.Version}`
+    )}
+    </div>
 </div>
 `;
 const styles = css`
@@ -76,12 +86,13 @@ const styles = css`
   styles: [styles],
 })
 export class PackageRow extends FASTElement {
+  @attr showInstalledVersion!: boolean;
   @attr package!: PackageViewModel;
   @observable iconUrl: string | null = null;
 
   @volatile
   get IconUrl() {
-    if (this.package.IconUrl == "")
+    if (!this.package.IconUrl)
       this.iconUrl = "https://nuget.org/Content/gallery/img/default-package-icon.svg";
     return this.iconUrl ?? this.package.IconUrl;
   }

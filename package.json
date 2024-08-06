@@ -3,9 +3,12 @@
   "displayName": "NuGet Gallery",
   "publisher": "patcx",
   "description": "The NuGet Gallery extension streamlines the process of installing and uninstalling NuGet packages, making it more efficient and user-friendly.",
-  "version": "1.1.1",
+  "version": "1.2.0",
   "license": "MIT",
   "icon": "docs/images/icon.png",
+  "sponsor": {
+    "url": "https://github.com/sponsors/pcislo"
+  },
   "engines": {
     "vscode": "^1.87.0"
   },
@@ -33,19 +36,29 @@
         "command": "nuget-gallery.reportProblem",
         "title": "Report Problem",
         "icon": "$(report)"
+      },
+      {
+        "command": "nuget-gallery.sponsor",
+        "title": "Sponsor Extension",
+        "icon": "$(heart)"
       }
     ],
     "menus": {
       "view/title": [
         {
+          "command": "nuget-gallery.sponsor",
+          "when": "view == nuget.gallery.view",
+          "group": "navigation@1"
+        },
+        {
           "command": "nuget-gallery.reportProblem",
           "when": "view == nuget.gallery.view",
-          "group": "navigation"
+          "group": "navigation@2"
         },
         {
           "command": "nuget-gallery.openSettings",
           "when": "view == nuget.gallery.view",
-          "group": "navigation"
+          "group": "navigation@3"
         }
       ]
     },

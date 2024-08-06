@@ -1,23 +1,27 @@
 import nonce from "@/common/nonce";
 import { observable } from "@microsoft/fast-element";
 
+type PackageViewModelStatus = "Detailed" | "MissingDetails" | "Error";
+
 export class PackageViewModel {
   Id: string;
   Name: string;
+  Model: Package;
   private _authors: Array<string>;
   private _tags: Array<string>;
-  Description: string;
-  IconUrl: string;
-  LicenseUrl: string;
-  ProjectUrl: string;
-  TotalDownloads: number;
-  Verified: boolean;
-  Version: string;
-  Versions: Array<string>;
-  Model: Package;
+  @observable Description: string;
+  @observable IconUrl: string;
+  @observable LicenseUrl: string;
+  @observable ProjectUrl: string;
+  @observable TotalDownloads: number;
+  @observable Verified: boolean;
+  @observable InstalledVersion: string;
+  @observable Version: string;
+  @observable Versions: Array<string>;
+  @observable Status: PackageViewModelStatus;
   @observable Selected: boolean = false;
 
-  constructor(model: Package) {
+  constructor(model: Package, status: PackageViewModelStatus = "Detailed") {
     this._authors = model.Authors;
     this.Id = model.Id;
     this.Name = model.Name;
@@ -28,7 +32,25 @@ export class PackageViewModel {
     this.TotalDownloads = model.TotalDownloads;
     this.Verified = model.Verified;
     this.Version = model.Version;
-    this.Versions = model.Versions.map((x) => x.Version).reverse();
+    this.InstalledVersion = model.InstalledVersion;
+    this.Versions = model.Versions?.map((x) => x.Version).reverse() ?? [];
+    this._tags = model.Tags;
+    this.Model = model;
+    this.Status = status;
+  }
+
+  UpdatePackage(model: Package) {
+    this._authors = model.Authors;
+    this.Id = model.Id;
+    this.Name = model.Name;
+    this.Description = model.Description;
+    this.IconUrl = model.IconUrl;
+    this.LicenseUrl = model.LicenseUrl;
+    this.ProjectUrl = model.ProjectUrl;
+    this.TotalDownloads = model.TotalDownloads;
+    this.Verified = model.Verified;
+    if (model.Version != "") this.Version = model.Version;
+    this.Versions = model.Versions?.map((x) => x.Version).reverse() ?? [];
     this._tags = model.Tags;
     this.Model = model;
   }

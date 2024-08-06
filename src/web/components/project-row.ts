@@ -133,5 +133,6 @@ export class ProjectRow extends FASTElement {
     );
     this.project.Packages = result.Project.Packages.map((x) => new ProjectPackageViewModel(x));
     this.loaders.Remove(request.PackageId);
+    this.$emit("project-updated");
   }
 }

@@ -4,9 +4,16 @@ const execSync = require("child_process").execSync;
 import * as vscode from "vscode";
 import TaskExecutor from "../utilities/task-executor";
 import os from "os";
+import path from "path";
 
 type GetPackagesResponse = {
   data: Array<Package>;
+};
+
+type GetPackageResponse = {
+  isError: boolean;
+  errorMessage: string | undefined;
+  data: Package | undefined;
 };
 
 type GetPackageDetailsResponse = {
@@ -15,6 +22,7 @@ type GetPackageDetailsResponse = {
 
 export default class NuGetApi {
   private _searchUrl: string = "";
+  private _packageInfoUrl: string = "";
   private _token: string | null = null;
   private http: AxiosInstance = axios.create();
 
@@ -73,6 +81,52 @@ export default class NuGetApi {
     };
   }
 
+  async GetPackageAsync(id: string): Promise<GetPackageResponse> {
+    await this.EnsureSearchUrl();
+    let url = path.join(this._packageInfoUrl, id.toLowerCase(), "index.json");
+    let items: Array<any> = [];
+    try {
+      let result = await this.http.get(url);
+      if ((result as any).code == "ERR_BAD_REQUEST")
+        return { isError: true, errorMessage: "Package couldn't be found", data: undefined };
+
+      for (let i = 0; i < result.data.count; i++) {
+        let page = result.data.items[i];
+        if (page.items) items.push(...page.items);
+        else {
+          let pageData = await this.http.get(page["@id"]);
+          items.push(...pageData.data.items);
+        }
+      }
+    } catch (err) {
+      console.log("ERROR", err);
+    }
+
+    if (items.length <= 0) throw { message: "Package info couldn't be found" };
+    let item = items[items.length - 1];
+    let catalogEntry = item.catalogEntry;
+    let packageObject: Package = {
+      Id: item["@id"] || "",
+      Name: catalogEntry?.id || "",
+      Authors: catalogEntry?.authors || [],
+      Description: catalogEntry?.description || "",
+      IconUrl: catalogEntry?.iconUrl || "",
+      Registration: catalogEntry?.registration || "",
+      LicenseUrl: catalogEntry?.licenseUrl || "",
+      ProjectUrl: catalogEntry?.projectUrl || "",
+      TotalDownloads: catalogEntry?.totalDownloads || 0,
+      Verified: catalogEntry?.verified || false,
+      Version: catalogEntry?.version || "",
+      Versions:
+        items.map((v: any) => ({
+          Version: v.catalogEntry.version,
+          Id: v["@id"],
+        })) || [],
+      Tags: catalogEntry?.tags || [],
+    };
+    return { data: packageObject, isError: false, errorMessage: undefined };
+  }
+
   async GetPackageDetailsAsync(packageVersionUrl: string): Promise<GetPackageDetailsResponse> {
     await this.EnsureSearchUrl();
     let packageVersion = await this.http.get(packageVersionUrl);
@@ -110,19 +164,25 @@ export default class NuGetApi {
   }
 
   private async EnsureSearchUrl() {
-    if (this._searchUrl !== "") return;
+    if (this._searchUrl !== "" && this._packageInfoUrl !== "") return;
+
     try {
       let response = await this.http.get(this._url);
-      let resource = response.data.resources.find((x: any) =>
-        x["@type"].includes("SearchQueryService")
-      );
-      if (resource != null) this._searchUrl = resource["@id"];
-      else throw { message: "Search url couldn't be found" };
+      this._searchUrl = await this.GetUrlFromNugetDefinition(response, "SearchQueryService");
+      if (this._searchUrl == "") throw { message: "SearchQueryService couldn't be found" };
+      this._packageInfoUrl = await this.GetUrlFromNugetDefinition(response, "RegistrationsBaseUrl");
+      if (this._packageInfoUrl == "") throw { message: "RegistrationsBaseUrl couldn't be found" };
     } catch (err: any) {
       console.error(err);
       if (err.credentialProviderError == true) throw { message: err.message };
-      throw { message: "Search url couldn't be found" };
+      throw { message: "Nuget urls couldn't be fetched" };
     }
+  }
+
+  private async GetUrlFromNugetDefinition(response: any, type: string): Promise<string> {
+    let resource = response.data.resources.find((x: any) => x["@type"].includes(type));
+    if (resource != null) return resource["@id"];
+    else return "";
   }
 
   private async GetCredentials(): Promise<Credentials> {

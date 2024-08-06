@@ -2,13 +2,14 @@ type Package = {
   Id: string;
   Name: string;
   Authors: Array<string>;
-  Description: "string";
+  Description: string;
   IconUrl: string;
   LicenseUrl: string;
   ProjectUrl: string;
   Registration: string;
   TotalDownloads: number;
   Verified: boolean;
+  InstalledVersion: string;
   Version: string;
   Versions: Array<PackageVersion>;
   Tags: Array<string>;
