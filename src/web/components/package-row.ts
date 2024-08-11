@@ -9,23 +9,44 @@ import {
   when,
 } from "@microsoft/fast-element";
 import { PackageViewModel } from "../types";
+import codicon from "@/web/styles/codicon.css";
 
 const template = html<PackageRow>`
-<div class="package-row ${(x) => (x.package.Selected ? "package-row-selected" : "")}">
+<div class="package-row ${(x) =>
+  x.package.Selected ? "package-row-selected" : ""}">
     <div class="package-title">
     <img class="icon" src=${(x) => x.IconUrl} @error="${(x) =>
-  (x.iconUrl = "https://nuget.org/Content/gallery/img/default-package-icon.svg")}"></img> 
+  (x.iconUrl =
+    "https://nuget.org/Content/gallery/img/default-package-icon.svg")}"></img> 
     <div class="title">
     <span class="name">${(x) => x.package.Name}</span>
     ${when(
       (x) => x.package.Authors,
-      html<PackageRow>`<span class="authors">@${(x) => x.package.Authors}</span>`
+      html<PackageRow>`<span class="authors"
+        >@${(x) => x.package.Authors}</span
+      >`
     )}
     </div>
     </div>
     <div class="package-version"> ${when(
       (x) => x.showInstalledVersion,
-      html<PackageRow>`${(x) => x.package.InstalledVersion}`,
+      html<PackageRow>`
+        ${(x) => x.package.InstalledVersion}
+        ${when(
+          (x) => x.package.Status == "MissingDetails",
+          html<PackageRow>`<vscode-progress-ring
+            class="loader"
+          ></vscode-progress-ring>`,
+          html<PackageRow>`${when(
+            (x) =>
+              x.package.Status == "Detailed" &&
+              x.package.Version != x.package.InstalledVersion,
+            html<PackageRow>`<span
+              class="codicon codicon-arrow-circle-up"
+            ></span>`
+          )}`
+        )}
+      `,
       html<PackageRow>`${(x) => x.package.Version}`
     )}
     </div>
@@ -76,6 +97,12 @@ const styles = css`
     .package-version {
       font-weight: bold;
       white-space: nowrap;
+      display: flex;
+      align-items: center;
+      gap: 3px;
+      .loader {
+        height: 12px;
+      }
     }
   }
 `;
@@ -83,7 +110,7 @@ const styles = css`
 @customElement({
   name: "package-row",
   template,
-  styles: [styles],
+  styles: [codicon, styles],
 })
 export class PackageRow extends FASTElement {
   @attr showInstalledVersion!: boolean;
@@ -93,7 +120,8 @@ export class PackageRow extends FASTElement {
   @volatile
   get IconUrl() {
     if (!this.package.IconUrl)
-      this.iconUrl = "https://nuget.org/Content/gallery/img/default-package-icon.svg";
+      this.iconUrl =
+        "https://nuget.org/Content/gallery/img/default-package-icon.svg";
     return this.iconUrl ?? this.package.IconUrl;
   }
 }

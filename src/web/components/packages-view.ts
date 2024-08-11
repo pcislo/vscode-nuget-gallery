@@ -13,7 +13,11 @@ import {
 import Split from "split.js";
 import hash from "object-hash";
 import { Configuration, IMediator } from "@/web/registrations";
-import { GET_PACKAGE, GET_PACKAGES, GET_PROJECTS } from "@/common/messaging/core/commands";
+import {
+  GET_PACKAGE,
+  GET_PACKAGES,
+  GET_PROJECTS,
+} from "@/common/messaging/core/commands";
 import codicon from "@/web/styles/codicon.css";
 import { scrollableBase } from "@/web/styles/base.css";
 import { PackageViewModel, ProjectViewModel } from "../types";
@@ -33,7 +37,8 @@ const template = html<PackagesView>`
         <vscode-panel-view class="views" id="view-1">
           <div
             class="packages-container"
-            @scroll=${(x, e) => x.PackagesScrollEvent(e.event.target as HTMLElement)}
+            @scroll=${(x, e) =>
+              x.PackagesScrollEvent(e.event.target as HTMLElement)}
           >
             ${when(
               (x) => !x.packagesLoadingError,
@@ -51,12 +56,14 @@ const template = html<PackagesView>`
                 )}
                 ${when(
                   (x) => !x.noMorePackages,
-                  html<PackagesView>`<vscode-progress-ring class="loader"></vscode-progress-ring>`
+                  html<PackagesView>`<vscode-progress-ring
+                    class="loader"
+                  ></vscode-progress-ring>`
                 )}
               `,
               html<PackagesView>`<div class="error">
-                <span class="codicon codicon-error"></span> Failed to fetch packages. See 'Webview
-                Developer Tools' for more details
+                <span class="codicon codicon-error"></span> Failed to fetch
+                packages. See 'Webview Developer Tools' for more details
               </div> `
             )}
           </div>
@@ -69,7 +76,8 @@ const template = html<PackagesView>`
                 <package-row
                   :showInstalledVersion="${(x) => true}"
                   :package=${(x) => x}
-                  @click=${(x, c: ExecutionContext<PackagesView, any>) => c.parent.SelectPackage(x)}
+                  @click=${(x, c: ExecutionContext<PackagesView, any>) =>
+                    c.parent.SelectPackage(x)}
                 >
                 </package-row>
               `
@@ -90,9 +98,13 @@ const template = html<PackagesView>`
                 <span class="package-title">
                   ${when(
                     (x) => x.NugetOrgPackageUrl != null,
-                    html<PackagesView>`<a target="_blank" :href=${(x) => x.NugetOrgPackageUrl}
-                      ><span class="package-link-icon codicon codicon-link-external"></span>${(x) =>
-                        x.selectedPackage?.Name}</a
+                    html<PackagesView>`<a
+                      target="_blank"
+                      :href=${(x) => x.NugetOrgPackageUrl}
+                      ><span
+                        class="package-link-icon codicon codicon-link-external"
+                      ></span
+                      >${(x) => x.selectedPackage?.Name}</a
                     >`,
                     html<PackagesView>`${(x) => x.selectedPackage?.Name}`
                   )}
@@ -100,14 +112,18 @@ const template = html<PackagesView>`
                 <div class="version-selector">
                   <vscode-dropdown
                     :value=${(x) => x.selectedVersion}
-                    @change=${(x, c) => (x.selectedVersion = (c.event.target as any).value)}
+                    @change=${(x, c) =>
+                      (x.selectedVersion = (c.event.target as any).value)}
                   >
                     ${repeat(
                       (x) => x.selectedPackage?.Versions || [],
                       html<string>` <vscode-option>${(x) => x}</vscode-option> `
                     )}
                   </vscode-dropdown>
-                  <vscode-button appearance="icon" @click=${(x) => x.LoadProjects()}>
+                  <vscode-button
+                    appearance="icon"
+                    @click=${(x) => x.LoadProjects()}
+                  >
                     <span class="codicon codicon-refresh"></span>
                   </vscode-button>
                 </div>
@@ -126,13 +142,19 @@ const template = html<PackagesView>`
                       (x) => x.projects,
                       html<ProjectViewModel>`
                         <project-row
-                          @project-updated=${(x, c: ExecutionContext<PackagesView, any>) =>
-                            c.parent.LoadProjectsPackages()}
+                          @project-updated=${(
+                            x,
+                            c: ExecutionContext<PackagesView, any>
+                          ) => c.parent.LoadProjectsPackages()}
                           :project=${(x) => x}
-                          :packageId=${(x, c: ExecutionContext<PackagesView, any>) =>
-                            c.parent.selectedPackage?.Name}
-                          :packageVersion=${(x, c: ExecutionContext<PackagesView, any>) =>
-                            c.parent.selectedVersion}
+                          :packageId=${(
+                            x,
+                            c: ExecutionContext<PackagesView, any>
+                          ) => c.parent.selectedPackage?.Name}
+                          :packageVersion=${(
+                            x,
+                            c: ExecutionContext<PackagesView, any>
+                          ) => c.parent.selectedVersion}
                         >
                         </project-row>
                       `
@@ -150,8 +172,8 @@ const template = html<PackagesView>`
                 class="loader packages-details-loader "
               ></vscode-progress-ring>`,
               html<PackagesView>`<div class="error">
-                <span class="codicon codicon-error"></span> Failed to fetch the package from the
-                selected registry.
+                <span class="codicon codicon-error"></span> Failed to fetch the
+                package from the selected registry.
               </div> `
             )}`
           )}
@@ -221,6 +243,7 @@ const styles = css`
         .views {
           flex: 1;
           padding: 0;
+          overflow: hidden;
         }
         &::part(tablist) {
           font-size: 11px;
@@ -331,7 +354,11 @@ export class PackagesView extends FASTElement {
   @observable selectedPackage: PackageViewModel | null = null;
   @observable packages: Array<PackageViewModel> = [];
   @observable projectsPackages: Array<PackageViewModel> = [];
-  @observable filters: FilterEvent = { Prerelease: true, Query: "", SourceUrl: "" };
+  @observable filters: FilterEvent = {
+    Prerelease: true,
+    Query: "",
+    SourceUrl: "",
+  };
   @observable noMorePackages: boolean = false;
   @observable packagesLoadingError: boolean = false;
 
@@ -353,7 +380,8 @@ export class PackagesView extends FASTElement {
         return gutter;
       },
     });
-    this.filters.SourceUrl = this.configuration.Configuration?.Sources[0].Url ?? "";
+    this.filters.SourceUrl =
+      this.configuration.Configuration?.Sources[0].Url ?? "";
     this.LoadPackages();
     this.LoadProjects();
   }
@@ -380,15 +408,18 @@ export class PackagesView extends FASTElement {
       return "";
 
     return (
-      this.selectedPackage?.Model.Versions.filter((x) => x.Version == this.selectedVersion)[0].Id ??
-      ""
+      this.selectedPackage?.Model.Versions.filter(
+        (x) => x.Version == this.selectedVersion
+      )[0].Id ?? ""
     );
   }
 
   LoadProjectsPackages() {
     var packages = this.projects
       ?.flatMap((p) => p.Packages)
-      .filter((x) => x.Id.toLowerCase().includes(this.filters.Query?.toLowerCase()));
+      .filter((x) =>
+        x.Id.toLowerCase().includes(this.filters.Query?.toLowerCase())
+      );
 
     const grouped = packages.reduce((acc: any, item) => {
       const { Id, Version } = item;
@@ -411,9 +442,14 @@ export class PackagesView extends FASTElement {
             Id: Id,
             Name: Id,
             IconUrl: "",
-            Versions: (Versions as Array<string>)?.map((x) => ({ Id: "", Version: x })),
+            Versions: (Versions as Array<string>)?.map((x) => ({
+              Id: "",
+              Version: x,
+            })),
             InstalledVersion:
-              (Versions as Array<string>)?.length == 1 ? (Versions as Array<string>)[0] : "",
+              (Versions as Array<string>)?.length == 1
+                ? (Versions as Array<string>)[0]
+                : "",
             Version: "",
             Description: "",
             LicenseUrl: "",
@@ -427,6 +463,28 @@ export class PackagesView extends FASTElement {
           "MissingDetails"
         )
     );
+
+    for (let i = 0; i < this.projectsPackages.length; i++) {
+      this.UpdatePackage(this.projectsPackages[i]);
+    }
+  }
+
+  async UpdatePackage(projectPackage: PackageViewModel) {
+    let result = await this.mediator.PublishAsync<
+      GetPackageRequest,
+      GetPackageResponse
+    >(GET_PACKAGE, {
+      Id: projectPackage.Id,
+      Url: this.filters.SourceUrl,
+    });
+
+    if (result.IsFailure || !result.Package) {
+      projectPackage.Status = "Error";
+    } else {
+      if (projectPackage.Version != "") result.Package.Version = "";
+      projectPackage.UpdatePackage(result.Package);
+      projectPackage.Status = "Detailed";
+    }
   }
 
   UpdatePackagesFilters(filters: FilterEvent) {
@@ -436,19 +494,23 @@ export class PackagesView extends FASTElement {
   }
 
   async SelectPackage(selectedPackage: PackageViewModel) {
-    this.packages.filter((x) => x.Selected).forEach((x) => (x.Selected = false));
-    this.projectsPackages.filter((x) => x.Selected).forEach((x) => (x.Selected = false));
+    this.packages
+      .filter((x) => x.Selected)
+      .forEach((x) => (x.Selected = false));
+    this.projectsPackages
+      .filter((x) => x.Selected)
+      .forEach((x) => (x.Selected = false));
     selectedPackage.Selected = true;
     this.selectedPackage = selectedPackage;
     if (this.selectedPackage.Status == "MissingDetails") {
       let packageToUpdate = this.selectedPackage;
-      let result = await this.mediator.PublishAsync<GetPackageRequest, GetPackageResponse>(
-        GET_PACKAGE,
-        {
-          Id: packageToUpdate.Id,
-          Url: this.filters.SourceUrl,
-        }
-      );
+      let result = await this.mediator.PublishAsync<
+        GetPackageRequest,
+        GetPackageResponse
+      >(GET_PACKAGE, {
+        Id: packageToUpdate.Id,
+        Url: this.filters.SourceUrl,
+      });
 
       if (result.IsFailure || !result.Package) {
         packageToUpdate.Status = "Error";
@@ -498,16 +560,19 @@ export class PackagesView extends FASTElement {
     let requestObject = _getLoadPackageRequest();
     this.currentLoadPackageHash = hash(requestObject);
 
-    let result = await this.mediator.PublishAsync<GetPackagesRequest, GetPackagesResponse>(
-      GET_PACKAGES,
-      requestObject
-    );
+    let result = await this.mediator.PublishAsync<
+      GetPackagesRequest,
+      GetPackagesResponse
+    >(GET_PACKAGES, requestObject);
     if (this.currentLoadPackageHash != hash(_getLoadPackageRequest())) return;
     if (result.IsFailure) {
       this.packagesLoadingError = true;
     } else {
-      let packagesViewModels = result.Packages!.map((x) => new PackageViewModel(x));
-      if (packagesViewModels.length < requestObject.Take) this.noMorePackages = true;
+      let packagesViewModels = result.Packages!.map(
+        (x) => new PackageViewModel(x)
+      );
+      if (packagesViewModels.length < requestObject.Take)
+        this.noMorePackages = true;
       this.packages.push(...packagesViewModels);
       this.packagesPage++;
       this.packagesLoadingInProgress = false;
@@ -516,10 +581,10 @@ export class PackagesView extends FASTElement {
 
   async LoadProjects() {
     this.projects = [];
-    let result = await this.mediator.PublishAsync<GetProjectsRequest, GetProjectsResponse>(
-      GET_PROJECTS,
-      {}
-    );
+    let result = await this.mediator.PublishAsync<
+      GetProjectsRequest,
+      GetProjectsResponse
+    >(GET_PROJECTS, {});
 
     this.projects = result.Projects.map((x) => new ProjectViewModel(x));
     this.LoadProjectsPackages();
