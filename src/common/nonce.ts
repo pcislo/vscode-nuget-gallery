@@ -1,8 +1,8 @@
 var last = 0;
+var repeat = 0;
 
 export default function (): number {
-  var repeat = 0,
-    length = 15;
+  var length = 15;
 
   var now = Math.pow(10, 2) * +new Date();
 

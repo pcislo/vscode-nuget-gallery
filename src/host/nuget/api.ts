@@ -26,9 +26,13 @@ export default class NuGetApi {
   private _token: string | null = null;
   private http: AxiosInstance = axios.create();
 
-  constructor(private readonly _url: string, private readonly _credentialProviderFolder: string) {
+  constructor(
+    private readonly _url: string,
+    private readonly _credentialProviderFolder: string
+  ) {
     this.http.interceptors.request.use((x) => {
-      if (this._token != null) x.headers["Authorization"] = `Basic ${this._token}`;
+      if (this._token != null)
+        x.headers["Authorization"] = `Basic ${this._token}`;
       return x;
     });
 
@@ -88,7 +92,11 @@ export default class NuGetApi {
     try {
       let result = await this.http.get(url);
       if ((result as any).code == "ERR_BAD_REQUEST")
-        return { isError: true, errorMessage: "Package couldn't be found", data: undefined };
+        return {
+          isError: true,
+          errorMessage: "Package couldn't be found",
+          data: undefined,
+        };
 
       for (let i = 0; i < result.data.count; i++) {
         let page = result.data.items[i];
@@ -117,6 +125,7 @@ export default class NuGetApi {
       TotalDownloads: catalogEntry?.totalDownloads || 0,
       Verified: catalogEntry?.verified || false,
       Version: catalogEntry?.version || "",
+      InstalledVersion: "",
       Versions:
         items.map((v: any) => ({
           Version: v.catalogEntry.version,
@@ -127,7 +136,9 @@ export default class NuGetApi {
     return { data: packageObject, isError: false, errorMessage: undefined };
   }
 
-  async GetPackageDetailsAsync(packageVersionUrl: string): Promise<GetPackageDetailsResponse> {
+  async GetPackageDetailsAsync(
+    packageVersionUrl: string
+  ): Promise<GetPackageDetailsResponse> {
     await this.EnsureSearchUrl();
     let packageVersion = await this.http.get(packageVersionUrl);
 
@@ -147,7 +158,7 @@ export default class NuGetApi {
       },
     };
 
-    result.data.dependencyGroups?.forEach((dependencyGroup: any) => {
+    result.data?.dependencyGroups?.forEach((dependencyGroup: any) => {
       let targetFramework = dependencyGroup.targetFramework;
       packageDetails.dependencies.frameworks[targetFramework] = [];
       dependencyGroup.dependencies?.forEach((dependency: any) => {
@@ -168,10 +179,18 @@ export default class NuGetApi {
 
     try {
       let response = await this.http.get(this._url);
-      this._searchUrl = await this.GetUrlFromNugetDefinition(response, "SearchQueryService");
-      if (this._searchUrl == "") throw { message: "SearchQueryService couldn't be found" };
-      this._packageInfoUrl = await this.GetUrlFromNugetDefinition(response, "RegistrationsBaseUrl");
-      if (this._packageInfoUrl == "") throw { message: "RegistrationsBaseUrl couldn't be found" };
+      this._searchUrl = await this.GetUrlFromNugetDefinition(
+        response,
+        "SearchQueryService"
+      );
+      if (this._searchUrl == "")
+        throw { message: "SearchQueryService couldn't be found" };
+      this._packageInfoUrl = await this.GetUrlFromNugetDefinition(
+        response,
+        "RegistrationsBaseUrl"
+      );
+      if (this._packageInfoUrl == "")
+        throw { message: "RegistrationsBaseUrl couldn't be found" };
     } catch (err: any) {
       console.error(err);
       if (err.credentialProviderError == true) throw { message: err.message };
@@ -179,15 +198,23 @@ export default class NuGetApi {
     }
   }
 
-  private async GetUrlFromNugetDefinition(response: any, type: string): Promise<string> {
-    let resource = response.data.resources.find((x: any) => x["@type"].includes(type));
+  private async GetUrlFromNugetDefinition(
+    response: any,
+    type: string
+  ): Promise<string> {
+    let resource = response.data.resources.find((x: any) =>
+      x["@type"].includes(type)
+    );
     if (resource != null) return resource["@id"];
     else return "";
   }
 
   private async GetCredentials(): Promise<Credentials> {
     let credentialProviderFolder = _.trimEnd(
-      _.trimEnd(this._credentialProviderFolder.replace("{user-profile}", os.homedir()), "/"),
+      _.trimEnd(
+        this._credentialProviderFolder.replace("{user-profile}", os.homedir()),
+        "/"
+      ),
       "\\"
     );
 
@@ -200,26 +227,40 @@ export default class NuGetApi {
     try {
       let result = null;
       try {
-        result = execSync(command + " -I -N -F Json -U " + this._url, { timeout: 10000 });
+        result = execSync(command + " -I -N -F Json -U " + this._url, {
+          timeout: 10000,
+        });
       } catch {
         let interactiveLoginTask = new vscode.Task(
           { type: "nuget", task: `CredentialProvider.Microsoft` },
           vscode.TaskScope.Workspace,
           "nuget-gallery-credentials",
           "CredentialProvider.Microsoft",
-          new vscode.ProcessExecution(command, ["-C", "False", "-R", "-U", this._url])
+          new vscode.ProcessExecution(command, [
+            "-C",
+            "False",
+            "-R",
+            "-U",
+            this._url,
+          ])
         );
 
         await TaskExecutor.ExecuteTask(interactiveLoginTask);
-        result = execSync(command + " -N -F Json -U " + this._url, { timeout: 10000 });
+        result = execSync(command + " -N -F Json -U " + this._url, {
+          timeout: 10000,
+        });
       }
-      let parsedResult = JSON.parse(result) as { Username: string; Password: string };
+      let parsedResult = JSON.parse(result) as {
+        Username: string;
+        Password: string;
+      };
       return parsedResult;
     } catch (err) {
       console.error(err);
       throw {
         credentialProviderError: true,
-        message: "Failed to fetch credentials. See 'Webview Developer Tools' for more details",
+        message:
+          "Failed to fetch credentials. See 'Webview Developer Tools' for more details",
       };
     }
   }
