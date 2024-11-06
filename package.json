@@ -67,7 +67,7 @@
         {
           "id": "nugetGalleryView",
           "title": "NuGet",
-          "icon": ""
+          "icon": "resources/nuget.svg"
         }
       ]
     },
