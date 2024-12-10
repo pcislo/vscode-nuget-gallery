@@ -1,6 +1,5 @@
 import { IRequestHandler } from "@/common/messaging/core/types";
 import nugetApiFactory from "../nuget/api-factory";
-import { AxiosError } from "axios";
 import * as vscode from "vscode";
 
 export class GetPackageDetails
@@ -18,12 +17,12 @@ export class GetPackageDetails
         Package: packageDetails.data,
       };
       return result;
-    } catch (err) {
-      console.error(err, (err as AxiosError)?.response?.data);
+    } catch (err: any) {
+      console.error(err);
       vscode.window.showErrorMessage(
-        `Failed to fetch packages: ${(err as { message: string })?.message}`
+        `Failed to fetch packages: ${err.message}`,
       );
-      return this.GetError("Failed to fetch package details");
+      return this.GetError('Failed to fetch package details');
     }
   }
 

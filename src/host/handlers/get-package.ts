@@ -1,5 +1,4 @@
 import { IRequestHandler } from "@/common/messaging/core/types";
-import { AxiosError } from "axios";
 import nugetApiFactory from "../nuget/api-factory";
 import * as vscode from "vscode";
 
@@ -23,10 +22,10 @@ export class GetPackage implements IRequestHandler<GetPackageRequest, GetPackage
         Package: packageResult.data,
       };
       return result;
-    } catch (err) {
-      console.error(err, (err as AxiosError)?.response?.data);
+    } catch (err: any) {
+      console.error(err);
       vscode.window.showErrorMessage(
-        `Failed to fetch package: ${(err as { message: string })?.message}`
+        `Failed to fetch packages: ${err.message}`,
       );
       let result: GetPackageResponse = {
         IsFailure: true,
