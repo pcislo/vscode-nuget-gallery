@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Respect proxy settings when making requests to repository endpoints
 - Changed error handling to correctly log AxiosErrors
+- Missing package versions
 
 ### Added
 
