@@ -62,6 +62,7 @@ export default class NuGetApi {
         take: take,
         skip: skip,
         prerelease: prerelease,
+        semVerLevel: "2.0.0"
       },
     });
     const mappedData: Array<Package> = result.data.data.map((item: any) => ({
