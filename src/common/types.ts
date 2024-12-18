@@ -50,6 +50,7 @@ type Source = {
 };
 
 type Configuration = {
+  SkipRestore: boolean;
   CredentialProviderFolder: string;
   Sources: Array<Source>;
 };

@@ -16,10 +16,10 @@ export default class ConfigurationService {
   }
 
   async Reload() {
-    let response = await this.mediator.PublishAsync<
-      GetConfigurationRequest,
-      GetConfigurationResponse
-    >(GET_CONFIGURATION, {});
+    let response = await this.mediator.PublishAsync<GetConfigurationRequest, GetConfigurationResponse>(
+      GET_CONFIGURATION,
+      {}
+    );
 
     this.configuration = response.Configuration;
     Observable.notify(this, "Configuration");
