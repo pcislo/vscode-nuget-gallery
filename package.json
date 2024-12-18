@@ -83,6 +83,11 @@
     "configuration": {
       "title": "NuGet Gallery",
       "properties": {
+        "NugetGallery.skipRestore": {
+          "type": "boolean",
+          "default": "false",
+          "description": "Skip performing a restore preview and compatibility check"
+        },
         "NugetGallery.credentialProviderFolder": {
           "type": "string",
           "default": "{user-profile}/.nuget/plugins/netcore/CredentialProvider.Microsoft",

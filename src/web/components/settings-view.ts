@@ -38,6 +38,18 @@ const template = html<SettingsView>`
         ></vscode-text-field>
       </div>
 
+      <div class="section">
+        <div class="title">Skip performing a restore preview and compatibility check</div>
+        <vscode-checkbox
+          :checked=${(x) => x.skipRestore}
+          @change=${(x, c) => {
+            x.skipRestore = (c.event.target! as HTMLInputElement).checked;
+            x.delayedCredentialProviderUpdate();
+          }}
+        >
+        </vscode-checkbox>
+      </div>
+
       <div class="section sources-section">
         <div class="title">Sources</div>
         <div class="subtitle">NuGet sources</div>
@@ -203,6 +215,7 @@ export class SettingsView extends FASTElement {
   @IMediator mediator!: IMediator;
   delayedCredentialProviderUpdate = lodash.debounce(() => this.UpdateConfiguration(), 500);
   @observable credentialProviderFolder: string = "";
+  @observable skipRestore: boolean = false;
   @observable newSource: SourceViewModel | null = null;
   @observable sources: Array<SourceViewModel> = [];
 
@@ -210,6 +223,7 @@ export class SettingsView extends FASTElement {
     super.connectedCallback();
     let config = this.configuration.Configuration;
     this.credentialProviderFolder = config?.CredentialProviderFolder ?? "";
+    this.skipRestore = config?.SkipRestore ?? false;
     this.sources = config?.Sources.map((x) => new SourceViewModel(x)) ?? [];
   }
 
@@ -218,6 +232,7 @@ export class SettingsView extends FASTElement {
       UPDATE_CONFIGURATION,
       {
         Configuration: {
+          SkipRestore: this.skipRestore,
           CredentialProviderFolder: this.credentialProviderFolder,
           Sources: this.sources.map((x) => x.GetModel()),
         },
