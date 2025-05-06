@@ -26,17 +26,13 @@ export default class NuGetApi {
   private _token: string | null = null;
   private http: AxiosInstance;
 
-  constructor(
-    private readonly _url: string,
-    private readonly _credentialProviderFolder: string
-  ) {
+  constructor(private readonly _url: string, private readonly _credentialProviderFolder: string) {
     this.http = axios.create({
-      proxy: this.getProxy()
+      proxy: this.getProxy(),
     });
 
     this.http.interceptors.request.use((x) => {
-      if (this._token != null)
-        x.headers["Authorization"] = `Basic ${this._token}`;
+      if (this._token != null) x.headers["Authorization"] = `Basic ${this._token}`;
       return x;
     });
 
@@ -62,7 +58,7 @@ export default class NuGetApi {
         take: take,
         skip: skip,
         prerelease: prerelease,
-        semVerLevel: "2.0.0"
+        semVerLevel: "2.0.0",
       },
     });
     const mappedData: Array<Package> = result.data.data.map((item: any) => ({
@@ -92,12 +88,12 @@ export default class NuGetApi {
 
   async GetPackageAsync(id: string): Promise<GetPackageResponse> {
     await this.EnsureSearchUrl();
-    let url = path.join(this._packageInfoUrl, id.toLowerCase(), 'index.json');
+    let url = new URL([id.toLowerCase(), "index.json"].join("/"), this._packageInfoUrl).href;
     let items: Array<any> = [];
     try {
       let result = await this.http.get(url);
       if (result instanceof AxiosError) {
-        console.error('Axios Error Data:');
+        console.error("Axios Error Data:");
         console.error(result.response?.data);
         return {
           isError: true,
@@ -110,9 +106,9 @@ export default class NuGetApi {
         let page = result.data.items[i];
         if (page.items) items.push(...page.items);
         else {
-          let pageData = await this.http.get(page['@id']);
+          let pageData = await this.http.get(page["@id"]);
           if (pageData instanceof AxiosError) {
-            console.error('Axios Error while loading page data:');
+            console.error("Axios Error while loading page data:");
             console.error(pageData.message);
           } else {
             items.push(...pageData.data.items);
@@ -149,9 +145,7 @@ export default class NuGetApi {
     return { data: packageObject, isError: false, errorMessage: undefined };
   }
 
-  async GetPackageDetailsAsync(
-    packageVersionUrl: string
-  ): Promise<GetPackageDetailsResponse> {
+  async GetPackageDetailsAsync(packageVersionUrl: string): Promise<GetPackageDetailsResponse> {
     await this.EnsureSearchUrl();
     let packageVersion = await this.ExecuteGet(packageVersionUrl);
 
@@ -189,67 +183,52 @@ export default class NuGetApi {
   }
 
   private async EnsureSearchUrl() {
-    if (this._searchUrl !== '' && this._packageInfoUrl !== '') return;
+    if (this._searchUrl !== "" && this._packageInfoUrl !== "") return;
 
     let response = await this.ExecuteGet(this._url);
 
-    this._searchUrl = await this.GetUrlFromNugetDefinition(
-      response,
-        "SearchQueryService"
-    );
-      if (this._searchUrl == "")
-      throw { message: "SearchQueryService couldn't be found" };
-    this._packageInfoUrl = await this.GetUrlFromNugetDefinition(
-      response,
-        "RegistrationsBaseUrl"
-    );
-      if (this._packageInfoUrl == "")
-      throw { message: "RegistrationsBaseUrl couldn't be found" };
+    this._searchUrl = await this.GetUrlFromNugetDefinition(response, "SearchQueryService");
+    if (this._searchUrl == "") throw { message: "SearchQueryService couldn't be found" };
+    this._packageInfoUrl = await this.GetUrlFromNugetDefinition(response, "RegistrationsBaseUrl");
+    if (this._packageInfoUrl == "") throw { message: "RegistrationsBaseUrl couldn't be found" };
   }
 
-  private async GetUrlFromNugetDefinition(
-    response: any,
-    type: string,
-  ): Promise<string> {
-    let resource = response.data.resources.find((x: any) =>
-      x['@type'].includes(type),
-    );
-    if (resource != null) return resource['@id'];
-    else return '';
+  private async GetUrlFromNugetDefinition(response: any, type: string): Promise<string> {
+    let resource = response.data.resources.find((x: any) => x["@type"].includes(type));
+    if (resource != null) return resource["@id"];
+    else return "";
   }
 
   private async ExecuteGet(
     url: string,
-    config?: AxiosRequestConfig<any> | undefined,
+    config?: AxiosRequestConfig<any> | undefined
   ): Promise<AxiosResponse<any, any>> {
     const response = await this.http.get(url, config);
     if (response instanceof AxiosError) {
-      console.error('Axios Error Data:');
+      console.error("Axios Error Data:");
       console.error(response.response?.data);
       throw {
-        message: `${response.message} on request to${url}`
-      }
+        message: `${response.message} on request to${url}`,
+      };
     }
 
     return response;
   }
 
   private getProxy(): AxiosProxyConfig | undefined {
-    let proxy: string | undefined = vscode.workspace
-      .getConfiguration()
-      .get('http.proxy');
-    if (proxy === '' || proxy == undefined) {
+    let proxy: string | undefined = vscode.workspace.getConfiguration().get("http.proxy");
+    if (proxy === "" || proxy == undefined) {
       proxy =
-        process.env['HTTPS_PROXY'] ??
-        process.env['https_proxy'] ??
-        process.env['HTTP_PROXY'] ??
-        process.env['http_proxy'];
+        process.env["HTTPS_PROXY"] ??
+        process.env["https_proxy"] ??
+        process.env["HTTP_PROXY"] ??
+        process.env["http_proxy"];
     }
 
-    if (proxy && proxy !== '') {
+    if (proxy && proxy !== "") {
       const proxy_url = new URL(proxy);
 
-      console.info(`Found proxy: ${proxy}`)
+      console.info(`Found proxy: ${proxy}`);
 
       return {
         host: proxy_url.hostname,
@@ -262,10 +241,7 @@ export default class NuGetApi {
 
   private async GetCredentials(): Promise<Credentials> {
     let credentialProviderFolder = _.trimEnd(
-      _.trimEnd(
-        this._credentialProviderFolder.replace("{user-profile}", os.homedir()),
-        "/"
-      ),
+      _.trimEnd(this._credentialProviderFolder.replace("{user-profile}", os.homedir()), "/"),
       "\\"
     );
 
@@ -287,13 +263,7 @@ export default class NuGetApi {
           vscode.TaskScope.Workspace,
           "nuget-gallery-credentials",
           "CredentialProvider.Microsoft",
-          new vscode.ProcessExecution(command, [
-            "-C",
-            "False",
-            "-R",
-            "-U",
-            this._url,
-          ])
+          new vscode.ProcessExecution(command, ["-C", "False", "-R", "-U", this._url])
         );
 
         await TaskExecutor.ExecuteTask(interactiveLoginTask);
@@ -310,8 +280,7 @@ export default class NuGetApi {
       console.error(err);
       throw {
         credentialProviderError: true,
-        message:
-          "Failed to fetch credentials. See 'Webview Developer Tools' for more details",
+        message: "Failed to fetch credentials. See 'Webview Developer Tools' for more details",
       };
     }
   }
