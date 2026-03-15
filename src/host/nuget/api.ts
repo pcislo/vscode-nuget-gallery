@@ -147,7 +147,13 @@ export default class NuGetApi {
 
   async GetPackageDetailsAsync(packageVersionUrl: string): Promise<GetPackageDetailsResponse> {
     await this.EnsureSearchUrl();
-    let packageVersion = await this.ExecuteGet(packageVersionUrl);
+
+    let packageVersion;
+    try {
+      packageVersion = await this.ExecuteGet(packageVersionUrl);
+    } catch {
+      return { data: { dependencies: { frameworks: {} } } };
+    }
 
     if (!packageVersion.data?.catalogEntry)
       return {
@@ -158,7 +164,12 @@ export default class NuGetApi {
         },
       };
 
-    let result = await this.ExecuteGet(packageVersion.data.catalogEntry);
+    let result;
+    try {
+      result = await this.ExecuteGet(packageVersion.data.catalogEntry);
+    } catch {
+      return { data: { dependencies: { frameworks: {} } } };
+    }
 
     let packageDetails: PackageDetails = {
       dependencies: {
@@ -254,7 +265,7 @@ export default class NuGetApi {
     try {
       let result = null;
       try {
-        result = execSync(command + " -I -N -F Json -U " + this._url, {
+        result = execSync(command + " -N -F Json -U " + this._url, {
           timeout: 10000,
         });
       } catch {

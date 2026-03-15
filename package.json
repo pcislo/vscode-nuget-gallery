@@ -3,7 +3,7 @@
   "displayName": "NuGet Gallery",
   "publisher": "patcx",
   "description": "The NuGet Gallery extension streamlines the process of installing and uninstalling NuGet packages, making it more efficient and user-friendly.",
-  "version": "1.2.4",
+  "version": "1.2.5",
   "license": "MIT",
   "icon": "docs/images/icon.png",
   "sponsor": {
@@ -127,7 +127,7 @@
     "@vscode/codicons": "^0.0.35",
     "@vscode/test-cli": "^0.0.6",
     "@vscode/test-electron": "^2.3.9",
-    "esbuild": "^0.20.1",
+    "esbuild": "^0.25.0",
     "eslint": "^8.56.0",
     "typescript": "^5.3.3"
   },
@@ -138,7 +138,7 @@
     "@vscode/webview-ui-toolkit": "^1.4.0",
     "@xmldom/xmldom": "^0.8.10",
     "async-mutex": "^0.5.0",
-    "axios": "^1.7.4",
+    "axios": "^1.8.2",
     "lodash": "^4.17.21",
     "object-hash": "^3.0.0",
     "split.js": "^1.6.5",
