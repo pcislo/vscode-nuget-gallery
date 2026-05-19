@@ -60,8 +60,6 @@ export class PackageViewModel {
       return this._authors.length ? this._authors.join(", ") : "";
     } else if (typeof this._authors === "string") {
       return this._authors;
-    } else {
-      console.log("Invalid type for _authors:", this._authors);
     }
     return "";
   }
@@ -71,8 +69,6 @@ export class PackageViewModel {
       return this._tags.length ? this._tags.join(", ") : "";
     } else if (typeof this._tags === "string") {
       return this._tags;
-    } else {
-      console.log("Invalid type for _tags:", this._tags);
     }
     return "";
   }
@@ -108,14 +104,22 @@ export class SourceViewModel {
   @observable DraftUrl: string = "";
   @observable EditMode: boolean = false;
   Editable: boolean = true;
+  Origin: SourceOrigin = "settings";
+  Username?: string;
+  Password?: string;
 
   constructor(model: Source | null = null) {
     this.Id = nonce();
     this.Name = model?.Name ?? "";
     this.Url = model?.Url ?? "";
+    this.Username = model?.Username;
+    this.Password = model?.Password;
+    this.Origin = model?.Origin ?? "settings";
+    this.Editable = model?.IsReadOnly !== true;
   }
 
   Edit() {
+    if (!this.Editable) return;
     this.DraftName = this.Name;
     this.DraftUrl = this.Url;
     this.EditMode = true;
@@ -132,6 +136,10 @@ export class SourceViewModel {
     let model: Source = {
       Name: this.Name,
       Url: this.Url,
+      Username: this.Username,
+      Password: this.Password,
+      IsReadOnly: !this.Editable,
+      Origin: this.Origin,
     };
     return model;
   }

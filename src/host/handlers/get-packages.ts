@@ -4,7 +4,7 @@ import * as vscode from "vscode";
 
 export class GetPackages implements IRequestHandler<GetPackagesRequest, GetPackagesResponse> {
   async HandleAsync(request: GetPackagesRequest): Promise<GetPackagesResponse> {
-    let api = nugetApiFactory.GetSourceApi(request.Url);
+    let api = await nugetApiFactory.GetSourceApi(request.Url);
     try {
       let packages = await api.GetPackagesAsync(
         request.Filter,
@@ -18,7 +18,6 @@ export class GetPackages implements IRequestHandler<GetPackagesRequest, GetPacka
       };
       return result;
     } catch (err: any) {
-      console.error(err);
       vscode.window.showErrorMessage(
         `Failed to fetch packages: ${err.message}`,
       );

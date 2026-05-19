@@ -89,24 +89,39 @@ const template = html<SettingsView>`
                   </div>
                 `,
                 html<SourceViewModel>`
-                  <div class="row data-row">
-                    <span class="label">${(x) => x.Name}</span>
+                  <div class="row data-row ${(x) => (x.Editable ? "" : "readonly-row")}">
+                    <span class="label">
+                      ${(x) => x.Name}
+                      ${when(
+                        (x) => !x.Editable,
+                        html<SourceViewModel>`<span
+                          class="origin-badge"
+                          title="Managed by nuget.config"
+                        >nuget.config</span>`
+                      )}
+                    </span>
                     <span class="label">${(x) => x.Url}</span>
-                    <div class="actions">
-                      <vscode-button
-                        appearance="icon"
-                        @click=${(x, c: ExecutionContext<SettingsView, any>) => c.parent.EditRow(x)}
-                      >
-                        <span class="codicon codicon-edit"></span>
-                      </vscode-button>
-                      <vscode-button
-                        appearance="icon"
-                        @click=${(x, c: ExecutionContext<SettingsView, any>) =>
-                          c.parent.RemoveRow(x)}
-                      >
-                        <span class="codicon codicon-close"></span>
-                      </vscode-button>
-                    </div>
+                    ${when(
+                      (x) => x.Editable,
+                      html<SourceViewModel>`
+                        <div class="actions">
+                          <vscode-button
+                            appearance="icon"
+                            @click=${(x, c: ExecutionContext<SettingsView, any>) =>
+                              c.parent.EditRow(x)}
+                          >
+                            <span class="codicon codicon-edit"></span>
+                          </vscode-button>
+                          <vscode-button
+                            appearance="icon"
+                            @click=${(x, c: ExecutionContext<SettingsView, any>) =>
+                              c.parent.RemoveRow(x)}
+                          >
+                            <span class="codicon codicon-close"></span>
+                          </vscode-button>
+                        </div>
+                      `
+                    )}
                   </div>
                 `
               )}
@@ -183,12 +198,27 @@ const styles = css`
               &:hover {
                 grid-template-columns: 30% auto 50px;
                 background-color: var(--vscode-list-hoverBackground);
-                &:not(:first-child) {
+                &:not(:first-child):not(.readonly-row) {
                   .actions {
                     display: flex;
                     gap: 2px;
                   }
                 }
+              }
+              &.readonly-row {
+                opacity: 0.85;
+                .label {
+                  color: var(--vscode-descriptionForeground);
+                }
+              }
+              .origin-badge {
+                margin-left: 6px;
+                padding: 0 4px;
+                border: 1px solid var(--vscode-descriptionForeground);
+                border-radius: 3px;
+                font-size: 10px;
+                color: var(--vscode-descriptionForeground);
+                vertical-align: middle;
               }
             }
             &.edit-row {

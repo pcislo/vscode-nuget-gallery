@@ -47,7 +47,13 @@ type Project = {
 type Source = {
   Name: string;
   Url: string;
+  Username?: string;
+  Password?: string;
+  IsReadOnly?: boolean;
+  Origin?: SourceOrigin;
 };
+
+type SourceOrigin = "settings" | "nuget-config";
 
 type Configuration = {
   SkipRestore: boolean;

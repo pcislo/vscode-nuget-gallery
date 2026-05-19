@@ -26,7 +26,15 @@ export default class NuGetApi {
   private _token: string | null = null;
   private http: AxiosInstance;
 
-  constructor(private readonly _url: string, private readonly _credentialProviderFolder: string) {
+  constructor(
+    private readonly _url: string,
+    private readonly _credentialProviderFolder: string,
+    private readonly _staticCredentials?: Credentials
+  ) {
+    if (this._staticCredentials) {
+      this._token = btoa(`${this._staticCredentials.Username}:${this._staticCredentials.Password}`);
+    }
+
     this.http = axios.create({
       proxy: this.getProxy(),
     });
@@ -38,6 +46,9 @@ export default class NuGetApi {
 
     this.http.interceptors.response.use(null, async (x) => {
       if (x.response?.status != 401) return x;
+      // If credentials came from nuget.config and were already wrong, don't fall back
+      // to the credential provider — the user has explicitly opted into stored creds.
+      if (this._staticCredentials) return x;
       let credentials = await this.GetCredentials();
       this._token = btoa(`${credentials.Username}:${credentials.Password}`);
       return this.http(x.config);
@@ -93,8 +104,9 @@ export default class NuGetApi {
     try {
       let result = await this.http.get(url);
       if (result instanceof AxiosError) {
-        console.error("Axios Error Data:");
-        console.error(result.response?.data);
+        vscode.window.showErrorMessage(
+          `NuGet API error while fetching package: ${result.message}`
+        );
         return {
           isError: true,
           errorMessage: "Package couldn't be found",
@@ -108,15 +120,18 @@ export default class NuGetApi {
         else {
           let pageData = await this.http.get(page["@id"]);
           if (pageData instanceof AxiosError) {
-            console.error("Axios Error while loading page data:");
-            console.error(pageData.message);
+            vscode.window.showErrorMessage(
+              `NuGet API error while loading page data: ${pageData.message}`
+            );
           } else {
             items.push(...pageData.data.items);
           }
         }
       }
     } catch (err) {
-      console.log("ERROR", err);
+      vscode.window.showErrorMessage(
+        `Error fetching package: ${err instanceof Error ? err.message : String(err)}`
+      );
     }
 
     if (items.length <= 0) throw { message: "Package info couldn't be found" };
@@ -216,10 +231,11 @@ export default class NuGetApi {
   ): Promise<AxiosResponse<any, any>> {
     const response = await this.http.get(url, config);
     if (response instanceof AxiosError) {
-      console.error("Axios Error Data:");
-      console.error(response.response?.data);
+      vscode.window.showErrorMessage(
+        `NuGet API error on request to ${url}: ${response.message}`
+      );
       throw {
-        message: `${response.message} on request to${url}`,
+        message: `${response.message} on request to ${url}`,
       };
     }
 
@@ -238,8 +254,6 @@ export default class NuGetApi {
 
     if (proxy && proxy !== "") {
       const proxy_url = new URL(proxy);
-
-      console.info(`Found proxy: ${proxy}`);
 
       return {
         host: proxy_url.hostname,
@@ -288,7 +302,9 @@ export default class NuGetApi {
       };
       return parsedResult;
     } catch (err) {
-      console.error(err);
+      vscode.window.showErrorMessage(
+        `Failed to fetch credentials: ${err instanceof Error ? err.message : String(err)}`
+      );
       throw {
         credentialProviderError: true,
         message: "Failed to fetch credentials. See 'Webview Developer Tools' for more details",

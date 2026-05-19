@@ -18,7 +18,9 @@ export class GetProjects implements IRequestHandler<GetProjectsRequest, GetProje
           let project = ProjectParser.Parse(x);
           projects.push(project);
         } catch (e) {
-          console.error(e);
+          vscode.window.showErrorMessage(
+            `Failed to parse project ${x}: ${e instanceof Error ? e.message : String(e)}`
+          );
         }
       });
     let compareName = (nameA: string, nameB: string) => {

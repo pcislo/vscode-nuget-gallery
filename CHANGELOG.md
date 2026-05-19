@@ -5,6 +5,13 @@ All notable changes to the "vscode-nuget-gallery" extension will be documented i
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.6]
+
+### Added
+
+- Read package sources from workspace and global `nuget.config` files
+- Apply credentials stored under `<packageSourceCredentials>` (`ClearTextPassword`) automatically when calling private feeds
+
 ## [1.2.5]
 
 ### Fix
